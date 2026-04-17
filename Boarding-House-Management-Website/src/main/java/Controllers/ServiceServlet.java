@@ -472,6 +472,40 @@ public class ServiceServlet extends HttpServlet {
                 .forward(request, response);
     }
 
+    // ================= ADMIN: ADD USAGE =================
+    private void addUsage(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
 
-    
+        int        contractId = Integer.parseInt(request.getParameter("contractId"));
+        int        serviceId  = Integer.parseInt(request.getParameter("serviceId"));
+        BigDecimal qty        = new BigDecimal(request.getParameter("quantity"));
+        LocalDate  useDate    = LocalDate.parse(request.getParameter("usageDate"));
+
+        ServiceUsage u = new ServiceUsage();
+        u.setContractId(contractId);
+        u.setServiceId(serviceId);
+        u.setQuantity(qty);
+        u.setUsageDate(useDate);
+
+        serviceDAO.addUsage(u);
+        response.sendRedirect(request.getContextPath() + "/services?action=requestList");
+    }
+
+    // ================= ADMIN: MARK BILLED =================
+    private void markBilled(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        int contractId = Integer.parseInt(request.getParameter("contractId"));
+        serviceDAO.markUsageBilled(contractId);
+        response.sendRedirect(request.getContextPath() + "/services?action=requestList");
+    }
+
+    // ================= PAGINATION HELPER =================
+    private int parsePage(String param, int totalPages) {
+        int page = 1;
+        if (param != null) {
+            try { page = Integer.parseInt(param); } catch (NumberFormatException ignored) {}
+        }
+        return Math.min(Math.max(page, 1), totalPages);
+    }
 }

@@ -566,5 +566,93 @@ public class ServiceDAO extends DBContext {
         }
     }
 
-   
+    // =============================
+    // ADMIN: COUNT PENDING REQUESTS
+    // =============================
+    public int countPendingRequests() {
+
+        String sql = "SELECT COUNT(*) FROM service_usage WHERE status = 'pending'";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // =============================
+    // ADMIN: REJECT REQUEST
+    // =============================
+    public void rejectRequest(int usageId) {
+
+        String sql = "UPDATE service_usage SET status = 'rejected' WHERE usage_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, usageId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =============================
+    // HELPER: Map result set to ServiceUsage with detail fields
+    // =============================
+    private ServiceUsage mapUsageDetail(ResultSet rs) throws SQLException {
+        ServiceUsage u = new ServiceUsage();
+        u.setUsageId(rs.getInt("usage_id"));
+        u.setContractId(rs.getInt("contract_id"));
+        u.setServiceId(rs.getInt("service_id"));
+        u.setQuantity(rs.getBigDecimal("quantity"));
+        u.setUsageDate(rs.getDate("usage_date").toLocalDate());
+        u.setBilled(rs.getBoolean("billed"));
+        u.setStatus(rs.getString("status"));
+        u.setUserId(rs.getInt("user_id"));
+        u.setServiceName(rs.getString("service_name"));
+        u.setRoomNumber(rs.getString("room_number"));
+        u.setRequesterName(rs.getString("requester_name"));
+        BigDecimal unitPrice = rs.getBigDecimal("unit_price");
+        if (unitPrice == null) unitPrice = BigDecimal.ZERO;
+        u.setUnitPrice(unitPrice);
+        u.setTotalCost(unitPrice.multiply(u.getQuantity()));
+        return u;
+    }
+
+    // =============================
+    // GET UNBILLED APPROVED SERVICES IN PERIOD (for bill preview)
+    // =============================
+    public List<ServiceUsage> getUnbilledApprovedByContractAndPeriod(
+            int contractId, LocalDate periodStart, LocalDate periodEnd) {
+        List<ServiceUsage> list = new ArrayList<>();
+        String sql = "SELECT su.usage_id, su.contract_id, su.service_id, su.quantity, "
+                + "su.usage_date, su.billed, su.status, su.user_id, "
+                + "s.service_name, r.room_number, "
+                + "u.full_name AS requester_name, "
+                + "ph.price_amount AS unit_price "
+                + "FROM service_usage su "
+                + "JOIN service s ON su.service_id = s.service_id "
+                + "JOIN contract c ON su.contract_id = c.contract_id "
+                + "JOIN room r ON c.room_id = r.room_id "
+                + "LEFT JOIN contract_user cu ON c.contract_id = cu.contract_id AND cu.role = 'owner' "
+                + "LEFT JOIN [user] u ON cu.user_id = u.user_id "
+                + "LEFT JOIN price_history ph ON s.category_id = ph.category_id "
+                + "  AND ph.effective_from = (SELECT TOP 1 effective_from FROM price_history "
+                + "    WHERE category_id = s.category_id AND effective_from <= su.usage_date "
+                + "    ORDER BY effective_from DESC) "
+                + "WHERE su.contract_id = ? AND su.billed = 0 AND su.status = 'approved' "
+                + "  AND su.usage_date BETWEEN ? AND ? "
+                + "ORDER BY su.usage_date";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, contractId);
+            ps.setDate(2, Date.valueOf(periodStart));
+            ps.setDate(3, Date.valueOf(periodEnd));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapUsageDetail(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
 }
