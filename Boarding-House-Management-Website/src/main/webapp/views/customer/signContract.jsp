@@ -71,7 +71,7 @@
                         </div>
                         <div>
                             <h5 class="mb-0 fw-bold">Room ${room.roomNumber}</h5>
-                            <div class="text-muted">${room.categoryName} &middot; <span class="text-success fw-semibold">${room.basePrice}&#8363;/month</span></div>
+                            <div class="text-muted">${room.categoryName} &middot; <span class="text-success fw-semibold"><fmt:formatNumber value="${room.basePrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;/month</span></div>
                         </div>
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-auto px-3">Available</span>
                     </div>
@@ -149,7 +149,7 @@
                                             </label>
                                             <c:if test="${f.monthlyPrice != null and f.monthlyPrice > 0}">
                                                 <span class="text-success small ms-1">
-                                                    +<fmt:formatNumber value="${f.monthlyPrice}" type="number"/>&#8363;/mo
+                                                    +<fmt:formatNumber value="${f.monthlyPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;/mo
                                                 </span>
                                             </c:if>
                                         </div>
@@ -173,11 +173,11 @@
                                         <i class="bi bi-calculator me-1"></i>Estimated rent / month
                                     </span>
                                     <span class="fw-bold text-primary fs-5" id="rentPreview">
-                                        <fmt:formatNumber value="${room.basePrice}" type="number"/>&#8363;
+                                        <fmt:formatNumber value="${room.basePrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
                                     </span>
                                 </div>
                                 <div class="text-muted mt-1" style="font-size:.8rem;" id="rentBreakdown">
-                                    Room rent: <fmt:formatNumber value="${room.basePrice}" type="number"/>&#8363;
+                                    Room rent: <fmt:formatNumber value="${room.basePrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
                                 </div>
                             </div>
                         </div>
@@ -227,7 +227,7 @@
                                             <i class="bi bi-arrow-right-circle text-primary opacity-50 fs-5"></i>
                                         </div>
                                         <div class="mt-3 d-flex align-items-center justify-content-between">
-                                            <span class="text-success fw-bold">${r.basePrice}&#8363;<span class="text-muted fw-normal small">/month</span></span>
+                                            <span class="text-success fw-bold"><fmt:formatNumber value="${r.basePrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;<span class="text-muted fw-normal small">/month</span></span>
                                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">Available</span>
                                         </div>
                                     </div>
@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var preview   = document.getElementById('rentPreview');
         var breakdown = document.getElementById('rentBreakdown');
-        if (preview)   preview.textContent   = formatVnd(total);
+        if (preview)   preview.innerHTML   = formatVnd(total);
         if (breakdown) breakdown.textContent = lines.join(' + ');
     }
 

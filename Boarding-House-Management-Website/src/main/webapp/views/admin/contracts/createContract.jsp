@@ -118,7 +118,8 @@
         <div class="card form-card shadow-sm mb-3">
             <div class="card-body p-4">
                 <div class="section-title"><i class="bi bi-person me-1"></i>Primary Tenant <span class="text-danger">*</span></div>
-                <select name="primaryUserId" class="form-select" required>
+                <select name="primaryUserId" id="primaryUserId" class="form-select" required
+                        onchange="fillTenantInfo(this.value)">
                     <option value="">— Select tenant —</option>
                     <c:forEach var="cu" items="${customers}">
                         <c:set var="hasActive" value="${activeContractUserIds.contains(cu.userId)}"/>
@@ -315,6 +316,36 @@ document.querySelector('form').addEventListener('submit', function(e) {
 document.querySelectorAll('input[name="tenantPhone"]').forEach(function(input) {
     input.addEventListener('input', function() { input.classList.remove('is-invalid'); });
 });
+
+// Auto-fill tenant info when selecting from dropdown
+function fillTenantInfo(userId) {
+    if (!userId) return;
+    var nameInput = document.querySelector('input[name="tenantName"]');
+    var phoneInput = document.querySelector('input[name="tenantPhone"]');
+    var cccdInput = document.querySelector('input[name="tenantCccd"]');
+
+    fetch('${pageContext.request.contextPath}/contract?action=getUserInfo&id=' + userId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                console.warn('fillTenantInfo error:', data.error);
+                return;
+            }
+            // Only fill if fields are empty (don't overwrite user-entered data)
+            if (nameInput && !nameInput.value && data.fullName) {
+                nameInput.value = data.fullName;
+            }
+            if (phoneInput && !phoneInput.value && data.phone) {
+                phoneInput.value = data.phone;
+            }
+            if (cccdInput && !cccdInput.value && data.cccd) {
+                cccdInput.value = data.cccd;
+            }
+        })
+        .catch(function(err) {
+            console.warn('fillTenantInfo fetch failed:', err);
+        });
+}
 
 // Set today as default start date (only if not pre-filled by server)
 document.addEventListener('DOMContentLoaded', function() {

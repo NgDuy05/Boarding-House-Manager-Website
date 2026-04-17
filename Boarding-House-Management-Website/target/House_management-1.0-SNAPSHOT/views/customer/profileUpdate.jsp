@@ -164,12 +164,22 @@
       <div class="row g-0" style="min-height: calc(100vh - 56px);">
         <%@ include file="sidebar.jsp" %>
         <main class="col p-4">
-    <div style="max-width: 620px;">
+    <div style="max-width: 620px; margin: 0 auto;">
 
         <%-- Hero header --%>
         <div class="page-hero">
-            <div class="hero-avatar">
-                <i class="bi bi-person-fill"></i>
+            <div class="hero-avatar" id="avatarPreview">
+                <c:choose>
+                    <c:when test="${not empty user.image}">
+                        <img src="${pageContext.request.contextPath}/${user.image}"
+                             class="rounded-circle"
+                             style="width:72px;height:72px;object-fit:cover;"
+                             alt="${user.fullName}">
+                    </c:when>
+                    <c:otherwise>
+                        <i class="bi bi-person-fill"></i>
+                    </c:otherwise>
+                </c:choose>
             </div>
             <div style="position:relative;z-index:1;">
                 <h4>Edit Profile</h4>
@@ -182,8 +192,35 @@
 
             <div class="section-label">Account Information</div>
 
+            <%-- Avatar upload --%>
+            <div class="mb-4 text-center">
+                <div class="d-inline-block position-relative" id="avatarUploadWrap">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:100px;height:100px;background:#f0f0f0;border:2px dashed #ccc;cursor:pointer;overflow:hidden;"
+                         onclick="document.getElementById('avatarInput').click()"
+                         id="avatarDropZone">
+                        <c:choose>
+                            <c:when test="${not empty user.image}">
+                                <img src="${pageContext.request.contextPath}/${user.image}"
+                                     class="rounded-circle"
+                                     style="width:100px;height:100px;object-fit:cover;"
+                                     id="avatarImg" alt="${user.fullName}">
+                            </c:when>
+                            <c:otherwise>
+                                <i class="bi bi-camera" style="font-size:28px;color:#aaa;"></i>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    <input type="file" id="avatarInput" name="avatarFile" accept="image/*" style="display:none" onchange="handleAvatarSelect(this)">
+                    <input type="hidden" name="avatarPath" id="avatarPath" value="${user.image}">
+                </div>
+                <div class="small text-muted mt-2">Click to upload avatar</div>
+                <div class="small text-muted">JPG, PNG - Max 5MB</div>
+            </div>
+
             <form action="${pageContext.request.contextPath}/customer" method="post" id="editForm" novalidate>
                 <input type="hidden" name="action" value="updateProfile">
+                <input type="hidden" name="avatarPath" id="avatarFormPath" value="${user.image}">
 
                 <%-- Username (read-only) --%>
                 <div class="mb-3">
@@ -222,7 +259,7 @@
                 </div>
 
                 <%-- Phone --%>
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label">Phone Number</label>
                     <div class="field-wrap">
                         <i class="bi bi-telephone field-icon"></i>
@@ -234,6 +271,20 @@
                                oninput="validatePhone(this)">
                     </div>
                     <div class="field-hint" id="err-phone" style="color:#ef4444;display:none">Invalid phone number</div>
+                </div>
+
+                <%-- CCCD --%>
+                <div class="mb-4">
+                    <label class="form-label">CCCD / Citizen ID</label>
+                    <div class="field-wrap">
+                        <i class="bi bi-person-badge field-icon"></i>
+                        <input type="text" name="cccd" id="cccdField" class="form-control"
+                               placeholder="Enter your CCCD number"
+                               value="${user.cccd}"
+                               maxlength="12"
+                               oninput="validateCccd(this)">
+                    </div>
+                    <div class="field-hint" id="err-cccd" style="color:#ef4444;display:none">Invalid CCCD (12 digits required)</div>
                 </div>
 
                 <%-- Action buttons --%>
@@ -284,6 +335,13 @@
             const ok = /^(0|\+\d{1,3})[0-9]{8,11}$/.test(el.value.replace(/\s/g,''));
             el.style.borderColor = ok ? '#10b981' : '#ef4444';
             document.getElementById('err-phone').style.display = ok ? 'none' : 'block';
+            return ok;
+        }
+        function validateCccd(el) {
+            if (!el.value) { el.style.borderColor = '#e5e7eb'; document.getElementById('err-cccd').style.display='none'; return true; }
+            const ok = /^[0-9]{12}$/.test(el.value);
+            el.style.borderColor = ok ? '#10b981' : '#ef4444';
+            document.getElementById('err-cccd').style.display = ok ? 'none' : 'block';
             return ok;
         }
 
@@ -343,6 +401,73 @@
             const err = document.getElementById('serverData').dataset.error.trim();
             if (err) showToast('error', 'Update Failed', err);
         });
+
+        /* ── Avatar Upload ── */
+        function handleAvatarSelect(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                if (!file.type.startsWith('image/')) {
+                    showToast('error', 'Upload Failed', 'Only image files are allowed');
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('error', 'Upload Failed', 'File size must be less than 5MB');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('type', 'user');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarImg').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                fetch('${pageContext.request.contextPath}/upload-image', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        showToast('error', 'Upload Failed', data.error);
+                    } else {
+                        document.getElementById('avatarPath').value = data.fullPath;
+                        document.getElementById('avatarFormPath').value = data.fullPath;
+                        showToast('success', 'Uploaded', 'Avatar updated successfully');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('error', 'Upload Failed', 'Could not upload image');
+                });
+            }
+        }
+
+        /* ── Drag and drop ── */
+        const dropZone = document.getElementById('avatarDropZone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#7c3aed';
+            });
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ccc';
+            });
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ccc';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('avatarInput').files = files;
+                    handleAvatarSelect(document.getElementById('avatarInput'));
+                }
+            });
+        }
     </script>
         </main>
       </div>

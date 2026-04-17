@@ -40,7 +40,7 @@
 <div class="container-fluid">
 <div class="row flex-nowrap admin-layout-row">
 <%@ include file="../sidebar.jsp" %>
-<main class="col admin-main px-4 py-4"><div style="max-width:660px">
+<main class="col admin-main px-4 py-4"><div style="max-width:660px; margin:0 auto;">
 
         <c:if test="${not empty sessionScope.customerError}">
             <div class="alert alert-danger alert-dismissible fade show">

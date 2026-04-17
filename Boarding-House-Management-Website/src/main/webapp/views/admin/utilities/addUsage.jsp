@@ -44,12 +44,17 @@
                             <label class="form-label fw-semibold">
                                 Room <span class="text-danger">*</span>
                             </label>
-                            <select name="roomId" class="form-select" required>
+                            <select name="roomId" id="roomSelect" class="form-select" required onchange="onRoomChange()">
                                 <option value="">-- Select Room --</option>
                                 <c:forEach var="room" items="${rooms}">
-                                    <option value="${room.roomId}">Room ${room.roomNumber}</option>
+                                    <option value="${room.roomId}" ${preSelectedRoomId == room.roomId ? 'selected' : ''}>Room ${room.roomNumber}</option>
                                 </c:forEach>
                             </select>
+                            <c:if test="${not empty preSelectedRoomId}">
+                                <div class="form-text text-info">
+                                    <i class="bi bi-info-circle me-1"></i>Old reading auto-filled from previous month.
+                                </div>
+                            </c:if>
                         </div>
 
                         <div class="mb-3">
@@ -65,8 +70,8 @@
                                 <label class="form-label fw-semibold">
                                     Old Reading (${utility.unit}) <span class="text-danger">*</span>
                                 </label>
-                                <input type="number" name="oldValue" class="form-control"
-                                       placeholder="0" min="0" required>
+                                <input type="number" name="oldValue" id="oldValueInput" class="form-control"
+                                       placeholder="0" min="0" value="${autoOldValue != null ? autoOldValue : ''}" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-semibold">
@@ -88,6 +93,23 @@
                         </div>
                     </form>
                     <script>
+                        var utilityId = ${utility.utilityId};
+
+                        function onRoomChange() {
+                            var roomId = document.getElementById('roomSelect').value;
+                            if (!roomId) return;
+
+                            // Fetch latest usage for this room/utility to auto-fill oldValue
+                            fetch('${pageContext.request.contextPath}/utility?action=getLatestUsage&roomId=' + roomId + '&utilityId=' + utilityId)
+                                .then(function(res) { return res.json(); })
+                                .then(function(data) {
+                                    if (data && data.newValue !== undefined) {
+                                        document.getElementById('oldValueInput').value = data.newValue;
+                                    }
+                                })
+                                .catch(function() {});
+                        }
+
                         function validateReadings(form) {
                             const oldVal = parseInt(form.oldValue.value) || 0;
                             const newVal = parseInt(form.newValue.value) || 0;

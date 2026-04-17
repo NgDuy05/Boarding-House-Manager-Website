@@ -281,10 +281,21 @@
                                href="#"
                                data-bs-toggle="dropdown">
 
-                                <img src="${pageContext.request.contextPath}/assets/images/user/avatar.png"
-                                     width="32"
-                                     height="32"
-                                     class="rounded-circle me-2">
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.user.image}">
+                                        <img src="${pageContext.request.contextPath}/${sessionScope.user.image}"
+                                             width="32"
+                                             height="32"
+                                             class="rounded-circle me-2"
+                                             style="object-fit:cover;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/assets/images/user/avatar.png"
+                                             width="32"
+                                             height="32"
+                                             class="rounded-circle me-2">
+                                    </c:otherwise>
+                                </c:choose>
 
                                 ${sessionScope.user.fullName}
 

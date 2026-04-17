@@ -9,6 +9,7 @@ public class RoomCategory {
     private String     description;
     private BigDecimal basePrice;
     private boolean    isDeleted;
+    private BigDecimal pricePerDay;
 
     // transient — filled by JOIN query
     private int roomCount;
@@ -37,4 +38,6 @@ public class RoomCategory {
     public void setBasePrice(BigDecimal p)          { this.basePrice = p; }
     public void setIsDeleted(boolean b)             { this.isDeleted = b; }
     public void setRoomCount(int roomCount)         { this.roomCount = roomCount; }
+    public BigDecimal getPricePerDay()             { return pricePerDay; }
+    public void setPricePerDay(BigDecimal p)      { this.pricePerDay = p; }
 }

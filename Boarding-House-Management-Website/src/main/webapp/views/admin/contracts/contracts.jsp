@@ -63,6 +63,18 @@
         </div>
         <div class="col-6 col-md-3">
             <div class="card stat-card shadow-sm text-center">
+                <div class="fw-bold fs-4 text-warning">${pendingCount}</div>
+                <div class="text-muted small">Pending</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm text-center">
+                <div class="fw-bold fs-4 text-info">${cancellationCount}</div>
+                <div class="text-muted small">Cancellation</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm text-center">
                 <div class="fw-bold fs-4 text-danger">${terminatedCount}</div>
                 <div class="text-muted small">Terminated</div>
             </div>
@@ -92,6 +104,9 @@
                     <select name="status" class="form-select">
                         <option value="">All</option>
                         <option value="active"     ${statusFilter == 'active'     ? 'selected' : ''}>Active</option>
+                        <option value="pending"    ${statusFilter == 'pending'    ? 'selected' : ''}>Pending</option>
+                        <option value="cancel_pending" ${statusFilter == 'cancel_pending' ? 'selected' : ''}>Cancellation Requested</option>
+                        <option value="rejected"   ${statusFilter == 'rejected'   ? 'selected' : ''}>Rejected</option>
                         <option value="terminated" ${statusFilter == 'terminated' ? 'selected' : ''}>Terminated</option>
                         <option value="expired"    ${statusFilter == 'expired'    ? 'selected' : ''}>Expired</option>
                     </select>
@@ -162,7 +177,7 @@
                                                class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="bi bi-pencil"></i></a>
                                             <c:if test="${c.status == 'active'}">
                                                 <button class="btn btn-sm btn-outline-danger me-1" title="Terminate"
-                                                    onclick="confirmTerminate(${c.contractId}, ${c.roomId}, '${c.roomNumber}')">
+                                                    onclick="confirmTerminate(${c.contractId}, ${c.roomId}, '${c.roomNumber}', '${c.endDate}')">
                                                     <i class="bi bi-x-circle"></i>
                                                 </button>
                                             </c:if>
@@ -217,6 +232,15 @@
             <div class="modal-body">
                 <p class="text-muted">Are you sure you want to terminate contract <strong id="termId"></strong> for <strong id="termRoom"></strong>?
                 This will free the room and cannot be undone.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Termination Reason <span class="text-danger">*</span></label>
+                    <textarea id="termReason" class="form-control" rows="3"
+                              placeholder="Enter reason for termination (e.g., tenant request, contract violation)"></textarea>
+                    <div class="form-text text-warning">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span id="depositInfo"></span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -227,11 +251,31 @@
 </div>
 
 <script>
-function confirmTerminate(id, roomId, roomNum) {
+function confirmTerminate(id, roomId, roomNum, endDate) {
     document.getElementById('termId').textContent = '#' + id;
     document.getElementById('termRoom').textContent = 'Room ' + roomNum;
-    document.getElementById('termBtn').href =
-        '${pageContext.request.contextPath}/contract?action=terminate&id=' + id + '&roomId=' + roomId;
+    document.getElementById('termReason').value = '';
+
+    // Check if contract is fulfilled (endDate <= today)
+    var today = new Date();
+    var end = new Date(endDate);
+    var isFulfilled = end <= today;
+
+    if (isFulfilled) {
+        document.getElementById('depositInfo').textContent =
+            'Contract has reached end date. Full deposit will be refunded.';
+    } else {
+        document.getElementById('depositInfo').textContent =
+            'Early termination - deposit will be retained (not refunded).';
+    }
+
+    // Set up terminate button to include reason
+    var termBtn = document.getElementById('termBtn');
+    termBtn.onclick = function() {
+        var reason = encodeURIComponent(document.getElementById('termReason').value);
+        window.location.href = '${pageContext.request.contextPath}/contract?action=terminate&id=' + id + '&roomId=' + roomId + '&reason=' + reason;
+    };
+
     new bootstrap.Modal(document.getElementById('terminateModal')).show();
 }
 </script>

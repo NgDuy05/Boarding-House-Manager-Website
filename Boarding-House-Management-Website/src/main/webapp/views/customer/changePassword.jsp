@@ -194,7 +194,7 @@
       <div class="row g-0" style="min-height: calc(100vh - 56px);">
         <%@ include file="sidebar.jsp" %>
         <main class="col p-4">
-    <div style="max-width: 560px;">
+    <div style="max-width: 560px; margin: 0 auto;">
 
         <%-- Hero header --%>
         <div class="page-hero">
@@ -235,7 +235,7 @@
                     <div class="field-wrap">
                         <i class="bi bi-lock-fill field-icon"></i>
                         <input type="password" name="newPassword" id="newPassword"
-                               class="form-control" placeholder="At least 6 characters"
+                               class="form-control" placeholder="Min 8 chars with upper, lower, number, special"
                                required oninput="onNewPwd(this.value)">
                         <button class="btn-eye" type="button" onclick="toggleEye('newPassword','eyeNew')">
                             <i class="bi bi-eye" id="eyeNew"></i>
@@ -285,7 +285,7 @@
                 Password Tips
             </div>
             <ul class="tip-list">
-                <li><i class="bi bi-check2-circle"></i>Use at least 6 characters</li>
+                <li><i class="bi bi-check2-circle"></i>Use at least 8 characters</li>
                 <li><i class="bi bi-check2-circle"></i>Mix uppercase, lowercase, numbers and symbols</li>
                 <li><i class="bi bi-check2-circle"></i>Avoid using the same word as your username</li>
                 <li><i class="bi bi-check2-circle"></i>Never share your password with anyone</li>
@@ -324,11 +324,9 @@
 
         /* ── Password strength ── */
         const LEVELS = [
-            { pct: '20%',  bg: '#ef4444', label: 'Very Weak'  },
-            { pct: '40%',  bg: '#f97316', label: 'Weak'       },
-            { pct: '60%',  bg: '#eab308', label: 'Fair'       },
-            { pct: '80%',  bg: '#3b82f6', label: 'Strong'     },
-            { pct: '100%', bg: '#10b981', label: 'Very Strong' }
+            { pct: '20%',  bg: '#ef4444', label: 'Weak'     },
+            { pct: '50%',  bg: '#f97316', label: 'Medium'   },
+            { pct: '100%', bg: '#10b981', label: 'Strong'   }
         ];
 
         function onNewPwd(val) {
@@ -342,20 +340,20 @@
             }
 
             let score = 0;
-            if (val.length >= 6)               score++;
-            if (val.length >= 10)              score++;
+            if (val.length >= 8)               score++;
             if (/[A-Z]/.test(val))             score++;
+            if (/[a-z]/.test(val))             score++;
             if (/[0-9]/.test(val))             score++;
             if (/[^A-Za-z0-9]/.test(val))      score++;
 
-            const lvl = LEVELS[Math.min(score - 1, 4)] || LEVELS[0];
+            const lvl = score <= 2 ? LEVELS[0] : (score <= 4 ? LEVELS[1] : LEVELS[2]);
             fill.style.width      = lvl.pct;
             fill.style.background = lvl.bg;
             label.textContent     = 'Strength: ' + lvl.label;
             label.style.color     = lvl.bg;
 
-            inp.classList.toggle('is-valid',   val.length >= 6);
-            inp.classList.toggle('is-invalid', val.length < 6);
+            inp.classList.toggle('is-valid',   val.length >= 8);
+            inp.classList.toggle('is-invalid', val.length < 8);
 
             const conf = document.getElementById('confirmPassword');
             if (conf.value) onConfirm();
@@ -389,9 +387,16 @@
                 showToast('error', 'Validation Error', 'Please enter your current password.');
                 return;
             }
-            if (np.length < 6) {
+            // Check password strength
+            var score = 0;
+            if (np.length >= 8) score++;
+            if (/[A-Z]/.test(np)) score++;
+            if (/[a-z]/.test(np)) score++;
+            if (/[0-9]/.test(np)) score++;
+            if (/[^A-Za-z0-9]/.test(np)) score++;
+            if (score < 5) {
                 e.preventDefault();
-                showToast('error', 'Validation Error', 'New password must be at least 6 characters.');
+                showToast('error', 'Validation Error', 'Password must meet all strength requirements.');
                 return;
             }
             if (np !== cp) {

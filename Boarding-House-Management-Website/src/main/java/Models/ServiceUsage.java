@@ -22,6 +22,7 @@ public class ServiceUsage {
 
     // DB field
     private String status;          // pending | approved | rejected
+    private Integer userId;         // user who created the request
 
     // Display fields (populated by join queries)
     private String serviceName;
@@ -136,5 +137,13 @@ public class ServiceUsage {
 
     public void setTotalCost(BigDecimal totalCost) {
         this.totalCost = totalCost;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 }

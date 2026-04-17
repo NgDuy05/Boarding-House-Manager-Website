@@ -91,7 +91,17 @@
         <%-- Profile header --%>
         <div class="profile-header mb-4 d-flex align-items-center gap-4">
             <div class="avatar-wrapper">
-                <i class="bi bi-person-fill"></i>
+                <c:choose>
+                    <c:when test="${not empty user.image}">
+                        <img src="${pageContext.request.contextPath}/${user.image}"
+                             class="rounded-circle"
+                             style="width:100px;height:100px;object-fit:cover;"
+                             alt="${user.fullName}">
+                    </c:when>
+                    <c:otherwise>
+                        <i class="bi bi-person-fill"></i>
+                    </c:otherwise>
+                </c:choose>
             </div>
             <div>
                 <h4 class="fw-bold mb-1">${user.fullName}</h4>
@@ -147,6 +157,18 @@
                         <c:choose>
                             <c:when test="${not empty user.phone}">
                                 <a href="tel:${user.phone}" class="text-decoration-none">${user.phone}</a>
+                            </c:when>
+                            <c:otherwise><span class="text-muted">Not set</span></c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label"><i class="bi bi-person-badge me-2"></i>CCCD / Citizen ID</div>
+                    <div class="info-value">
+                        <c:choose>
+                            <c:when test="${not empty user.cccd}">
+                                ${user.cccd}
                             </c:when>
                             <c:otherwise><span class="text-muted">Not set</span></c:otherwise>
                         </c:choose>

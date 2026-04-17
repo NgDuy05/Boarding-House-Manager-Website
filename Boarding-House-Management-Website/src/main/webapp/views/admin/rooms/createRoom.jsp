@@ -11,7 +11,7 @@
         <h4 class="mb-0"><i class="bi bi-house-door me-2"></i>Add Room</h4>
     </div>
 
-    <div class="card shadow-sm border-0" style="max-width:560px;">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width:560px;">
         <div class="card-body">
             <form method="post" action="${pageContext.request.contextPath}/room">
                 <input type="hidden" name="action" value="create">

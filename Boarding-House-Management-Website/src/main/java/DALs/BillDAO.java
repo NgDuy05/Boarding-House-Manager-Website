@@ -66,10 +66,12 @@ public class BillDAO extends DBContext {
         List<Bill> list = new ArrayList<>();
 
         // contract has no user_id column — link through contract_user junction table
+        // Only get bills from active contracts
         String sql = "SELECT b.* "
                 + "FROM bill b "
                 + "JOIN contract_user cu ON b.contract_id = cu.contract_id "
-                + "WHERE cu.user_id = ? AND b.is_deleted = 0 "
+                + "JOIN contract c ON b.contract_id = c.contract_id "
+                + "WHERE cu.user_id = ? AND b.is_deleted = 0 AND c.status = 'active' "
                 + "ORDER BY b.bill_id DESC";
 
         try (PreparedStatement st = connection.prepareStatement(sql)) {
@@ -110,9 +112,9 @@ public class BillDAO extends DBContext {
 
         List<Bill> list = new ArrayList<>();
 
-        String sql = "SELECT * FROM bill "
-                + "WHERE status = 'pending' "
-                + "AND is_deleted = 0";
+        String sql = "SELECT b.* FROM bill b "
+                + "JOIN contract c ON b.contract_id = c.contract_id "
+                + "WHERE b.status = 'pending' AND b.is_deleted = 0 AND c.status = 'active'";
         try (PreparedStatement st = connection.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
 
             while (rs.next()) {
@@ -321,7 +323,7 @@ public class BillDAO extends DBContext {
                    + "FROM bill b "
                    + "JOIN contract c ON b.contract_id = c.contract_id "
                    + "JOIN room r     ON c.room_id = r.room_id "
-                   + "WHERE b.is_deleted = 0 "
+                   + "WHERE b.is_deleted = 0 AND c.status = 'active' "
                    + "ORDER BY b.bill_id DESC";
         try (PreparedStatement st = connection.prepareStatement(sql);
              ResultSet rs = st.executeQuery()) {
@@ -503,7 +505,7 @@ public class BillDAO extends DBContext {
                    + "FROM bill b "
                    + "JOIN contract c ON b.contract_id = c.contract_id "
                    + "JOIN room r ON c.room_id = r.room_id "
-                   + "WHERE b.status = 'pending' AND b.due_date < ? AND b.is_deleted = 0";
+                   + "WHERE b.status = 'pending' AND b.due_date < ? AND b.is_deleted = 0 AND c.status = 'active'";
         try (PreparedStatement st = connection.prepareStatement(sql)) {
             st.setDate(1, Date.valueOf(today));
             ResultSet rs = st.executeQuery();
@@ -526,7 +528,7 @@ public class BillDAO extends DBContext {
                    + "FROM bill b "
                    + "JOIN contract c ON b.contract_id = c.contract_id "
                    + "JOIN room r ON c.room_id = r.room_id "
-                   + "WHERE b.status = 'pending' AND b.due_date = ? AND b.is_deleted = 0";
+                   + "WHERE b.status = 'pending' AND b.due_date = ? AND b.is_deleted = 0 AND c.status = 'active'";
         try (PreparedStatement st = connection.prepareStatement(sql)) {
             st.setDate(1, Date.valueOf(target));
             ResultSet rs = st.executeQuery();
@@ -543,20 +545,32 @@ public class BillDAO extends DBContext {
     // CREATE FIRST BILL (pro-rata based on actual move-in date)
     // Called when a new contract is created mid-month.
     // Calculates rent proportional to days stayed in the first month.
-    // Creates a bill with ONE item: pro-rated room rent.
+    // If move-in is on 1st of month -> full month rent (no pro-rata).
+    // Uses price_per_day from room_category for accurate daily rate.
     // ==============================
-    public int createFirstMonthBill(int contractId, BigDecimal monthlyRent, LocalDate contractStartDate) {
+    public int createFirstMonthBill(int contractId, BigDecimal monthlyRent,
+                                   LocalDate contractStartDate, BigDecimal pricePerDay) {
         int year = contractStartDate.getYear();
         int month = contractStartDate.getMonthValue();
         int dayOfMonth = contractStartDate.getDayOfMonth();
         int daysInMonth = contractStartDate.lengthOfMonth();
 
-        // Days actually stayed in first month = total days - start day + 1
-        int daysStayed = daysInMonth - dayOfMonth + 1;
+        BigDecimal firstMonthRent;
+        int daysStayed;
 
-        // Pro-rata rent for first month
-        BigDecimal dailyRate = monthlyRent.divide(BigDecimal.valueOf(daysInMonth), 10, java.math.RoundingMode.HALF_UP);
-        BigDecimal firstMonthRent = dailyRate.multiply(BigDecimal.valueOf(daysStayed)).setScale(0, java.math.RoundingMode.HALF_UP);
+        if (dayOfMonth == 1) {
+            // Move-in on 1st -> full month rent
+            firstMonthRent = monthlyRent;
+            daysStayed = daysInMonth;
+        } else {
+            // Move-in mid-month -> pro-rata using price_per_day
+            daysStayed = daysInMonth - dayOfMonth + 1;
+            BigDecimal dailyRate = (pricePerDay != null && pricePerDay.compareTo(BigDecimal.ZERO) > 0)
+                ? pricePerDay
+                : monthlyRent.divide(BigDecimal.valueOf(daysInMonth), 10, java.math.RoundingMode.HALF_UP);
+            firstMonthRent = dailyRate.multiply(BigDecimal.valueOf(daysStayed))
+                .setScale(0, java.math.RoundingMode.HALF_UP);
+        }
 
         // Period = contract start date (normalized to 1st of month for DB constraint)
         LocalDate period = LocalDate.of(year, month, 1);
@@ -575,7 +589,7 @@ public class BillDAO extends DBContext {
             if (rs.next()) roomCategoryId = rs.getInt("category_id");
         } catch (SQLException ignored) {}
 
-        // Build bill with one pro-rated room rent item
+        // Build bill with one pro-rated (or full) room rent item
         Bill bill = new Bill();
         bill.setContractId(contractId);
         bill.setPeriod(period);
@@ -583,11 +597,15 @@ public class BillDAO extends DBContext {
         bill.setTotalAmount(firstMonthRent);
         bill.setStatus("pending");
 
+        String desc = (dayOfMonth == 1)
+            ? "Tien phong thang " + month + "/" + year + " (day 1)"
+            : "Tien phong " + daysStayed + " ngay ("
+              + dayOfMonth + "/" + month + "/" + year + " - "
+              + daysInMonth + "/" + month + "/" + year + ")";
+
         BillItem rentItem = new BillItem();
         rentItem.setCategoryId(roomCategoryId);
-        rentItem.setDescription("Tien phong " + daysStayed + " ngay ("
-            + dayOfMonth + "/" + month + "/" + year + " - "
-            + daysInMonth + "/" + month + "/" + year + ")");
+        rentItem.setDescription(desc);
         rentItem.setQuantity(BigDecimal.ONE);
         rentItem.setUnitPrice(firstMonthRent);
         rentItem.setSourceType("contract");

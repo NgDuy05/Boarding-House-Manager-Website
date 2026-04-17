@@ -124,6 +124,25 @@
                         </div>
                     </div>
                 </c:forEach>
+
+                <%-- Pagination --%>
+                <c:if test="${totalPages > 1}">
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="?action=mycontract&page=${currentPage - 1}">Previous</a>
+                            </li>
+                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                <li class="page-item ${p == currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="?action=mycontract&page=${p}">${p}</a>
+                                </li>
+                            </c:forEach>
+                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="?action=mycontract&page=${currentPage + 1}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </c:if>
             </div>
         </c:otherwise>
     </c:choose>
