@@ -15,7 +15,7 @@
     </c:if>
 
     <c:if test="${not empty category}">
-        <div class="card shadow-sm border-0" style="max-width:520px;">
+        <div class="card shadow-sm border-0 mx-auto" style="max-width:520px;">
             <div class="card-body">
                 <form method="post" action="${pageContext.request.contextPath}/price">
                     <input type="hidden" name="action" value="update">

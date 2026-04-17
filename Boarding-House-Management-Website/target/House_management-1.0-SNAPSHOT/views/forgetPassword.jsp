@@ -33,6 +33,42 @@
             border-color: #764ba2;
             box-shadow: 0 0 0 0.2rem rgba(118, 75, 162, 0.25);
         }
+        /* Password strength meter */
+        .pwd-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: #e5e7eb;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .pwd-strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+            width: 0%;
+        }
+        .pwd-strength-label {
+            font-size: .72rem;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .pwd-requirements {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .pwd-requirements li {
+            font-size: .72rem;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color .2s;
+        }
+        .pwd-requirements li.met { color: #10b981; }
     </style>
 </head>
 
@@ -144,7 +180,7 @@
                     <span>OTP verified! Please set your new password.</span>
                 </div>
 
-                <form action="${pageContext.request.contextPath}/auth" method="post">
+                <form action="${pageContext.request.contextPath}/auth" method="post" id="resetForm">
                     <input type="hidden" name="action" value="doResetPassword">
 
                     <div class="mb-3">
@@ -152,12 +188,24 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
                             <input type="password" name="newPassword" id="newPassword" class="form-control"
-                                   placeholder="At least 6 characters" required autofocus>
+                                   placeholder="Min 8 chars with upper, lower, number, special" required autofocus
+                                   oninput="updateStrengthMeter(this.value)">
                             <button class="btn btn-outline-secondary" type="button"
                                     onclick="togglePassword('newPassword','eyeNew')">
                                 <i class="bi bi-eye" id="eyeNew"></i>
                             </button>
                         </div>
+                        <div class="pwd-strength-bar">
+                            <div class="pwd-strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="pwd-strength-label" id="strengthLabel"></div>
+                        <ul class="pwd-requirements" id="pwdRequirements">
+                            <li id="req-length"><i class="bi bi-circle"></i> 8+ characters</li>
+                            <li id="req-upper"><i class="bi bi-circle"></i> Uppercase letter</li>
+                            <li id="req-lower"><i class="bi bi-circle"></i> Lowercase letter</li>
+                            <li id="req-digit"><i class="bi bi-circle"></i> Number</li>
+                            <li id="req-special"><i class="bi bi-circle"></i> Special character</li>
+                        </ul>
                     </div>
 
                     <div class="mb-4">
@@ -203,6 +251,64 @@
                 input.type = 'password';
                 icon.classList.replace('bi-eye-slash', 'bi-eye');
             }
+        }
+
+        function updateStrengthMeter(pwd) {
+            var fill = document.getElementById('strengthFill');
+            var label = document.getElementById('strengthLabel');
+            var reqs = {
+                length: pwd.length >= 8,
+                upper: /[A-Z]/.test(pwd),
+                lower: /[a-z]/.test(pwd),
+                digit: /\d/.test(pwd),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)
+            };
+
+            document.getElementById('req-length').className = reqs.length ? 'met' : '';
+            document.getElementById('req-length').innerHTML = reqs.length ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>' + ' 8+ characters';
+            document.getElementById('req-upper').className = reqs.upper ? 'met' : '';
+            document.getElementById('req-upper').innerHTML = reqs.upper ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>' + ' Uppercase';
+            document.getElementById('req-lower').className = reqs.lower ? 'met' : '';
+            document.getElementById('req-lower').innerHTML = reqs.lower ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>' + ' Lowercase';
+            document.getElementById('req-digit').className = reqs.digit ? 'met' : '';
+            document.getElementById('req-digit').innerHTML = reqs.digit ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>' + ' Number';
+            document.getElementById('req-special').className = reqs.special ? 'met' : '';
+            document.getElementById('req-special').innerHTML = reqs.special ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>' + ' Special';
+
+            var score = Object.values(reqs).filter(Boolean).length;
+            var pct, color, text;
+            if (score <= 2) { pct = 20; color = '#ef4444'; text = 'Weak'; }
+            else if (score <= 4) { pct = 60; color = '#f59e0b'; text = 'Medium'; }
+            else { pct = 100; color = '#10b981'; text = 'Strong'; }
+
+            fill.style.width = pct + '%';
+            fill.style.background = color;
+            label.textContent = pwd.length > 0 ? text : '';
+            label.style.color = color;
+        }
+
+        // Form validation for reset password
+        var resetForm = document.getElementById('resetForm');
+        if (resetForm) {
+            resetForm.addEventListener('submit', function(e) {
+                var pwd = document.getElementById('newPassword').value;
+                var confirm = document.getElementById('confirmPassword').value;
+                var score = 0;
+                if (pwd.length >= 8) score++;
+                if (/[A-Z]/.test(pwd)) score++;
+                if (/[a-z]/.test(pwd)) score++;
+                if (/\d/.test(pwd)) score++;
+                if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) score++;
+                if (score < 5) {
+                    e.preventDefault();
+                    alert('Password must meet all strength requirements.');
+                    return;
+                }
+                if (pwd !== confirm) {
+                    e.preventDefault();
+                    alert('Passwords do not match.');
+                }
+            });
         }
 
         // Auto-submit when 6 digits entered

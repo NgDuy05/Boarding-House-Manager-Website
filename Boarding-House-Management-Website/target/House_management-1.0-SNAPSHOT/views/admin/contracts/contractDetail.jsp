@@ -66,6 +66,30 @@
                     <i class="bi bi-x-circle me-1"></i>Terminate
                 </button>
             </c:if>
+            <c:if test="${contract.status == 'pending'}">
+                <a href="${pageContext.request.contextPath}/contract?action=approve&id=${contract.contractId}"
+                   class="btn btn-success btn-sm fw-semibold"
+                   onclick="return confirm('Approve this contract? The room will be marked as occupied.')">
+                    <i class="bi bi-check-circle me-1"></i>Approve
+                </a>
+                <a href="${pageContext.request.contextPath}/contract?action=reject&id=${contract.contractId}"
+                   class="btn btn-outline-danger btn-sm fw-semibold"
+                   onclick="return confirm('Reject this contract?')">
+                    <i class="bi bi-x-circle me-1"></i>Reject
+                </a>
+            </c:if>
+            <c:if test="${contract.status == 'cancel_pending'}">
+                <a href="${pageContext.request.contextPath}/contract?action=approveCancellation&id=${contract.contractId}"
+                   class="btn btn-success btn-sm fw-semibold"
+                   onclick="return confirm('Approve cancellation? The contract will be terminated and the room freed.')">
+                    <i class="bi bi-check-circle me-1"></i>Approve Cancellation
+                </a>
+                <a href="${pageContext.request.contextPath}/contract?action=rejectCancellation&id=${contract.contractId}"
+                   class="btn btn-outline-secondary btn-sm fw-semibold"
+                   onclick="return confirm('Reject cancellation request? The contract will remain active.')">
+                    <i class="bi bi-x-circle me-1"></i>Reject Cancellation
+                </a>
+            </c:if>
             <a href="${pageContext.request.contextPath}/contract?action=list" class="btn btn-light btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Back
             </a>
@@ -251,7 +275,7 @@
                                                         <td class="ps-4 text-muted small">#${b.billId}</td>
                                                         <td>${b.period}</td>
                                                         <td class="text-muted small">${b.dueDate}</td>
-                                                        <td class="fw-semibold text-success">${b.totalAmount}&#8363;</td>
+                                                        <td class="fw-semibold text-success"><fmt:formatNumber value="${b.totalAmount}" groupingUsed="true" maxFractionDigits="0"/>&#8363;</td>
                                                         <td class="text-center pe-4">
                                                             <c:choose>
                                                                 <c:when test="${b.status=='paid'}"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-check-circle me-1"></i>Paid</span></c:when>

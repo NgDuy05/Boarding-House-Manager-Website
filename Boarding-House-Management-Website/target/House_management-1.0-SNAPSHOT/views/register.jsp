@@ -226,6 +226,49 @@
             .auth-form-wrap { box-shadow: 0 8px 40px rgba(0,0,0,.2); }
             .row-2 { grid-template-columns: 1fr; }
         }
+
+        /* Password strength meter */
+        .pwd-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: #e5e7eb;
+            margin-top: 6px;
+            overflow: hidden;
+            transition: background .3s;
+        }
+        .pwd-strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+            width: 0%;
+        }
+        .pwd-strength-label {
+            font-size: .72rem;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .pwd-requirements {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .pwd-requirements li {
+            font-size: .72rem;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color .2s;
+        }
+        .pwd-requirements li.met {
+            color: #10b981;
+        }
+        .pwd-requirements li i {
+            font-size: .8rem;
+        }
     </style>
 </head>
 <body>
@@ -305,13 +348,24 @@
                         <div class="input-icon-wrap">
                             <i class="bi bi-lock icon-left"></i>
                             <input type="password" name="password" id="password"
-                                   class="form-control" placeholder="Min. 6 characters" required
-                                   oninput="validatePassword(this)">
+                                   class="form-control" placeholder="Min. 8 chars with upper, lower, number, special" required
+                                   oninput="validatePassword(this); updateStrengthMeter(this.value);">
                             <button class="btn-eye" type="button" onclick="togglePwd('password','eyePwd')">
                                 <i class="bi bi-eye" id="eyePwd"></i>
                             </button>
                         </div>
-                        <div class="field-error" id="err-password">At least 6 characters required</div>
+                        <div class="pwd-strength-bar">
+                            <div class="pwd-strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="pwd-strength-label" id="strengthLabel"></div>
+                        <ul class="pwd-requirements" id="pwdRequirements">
+                            <li id="req-length"><i class="bi bi-circle"></i> 8+ characters</li>
+                            <li id="req-upper"><i class="bi bi-circle"></i> Uppercase letter</li>
+                            <li id="req-lower"><i class="bi bi-circle"></i> Lowercase letter</li>
+                            <li id="req-digit"><i class="bi bi-circle"></i> Number</li>
+                            <li id="req-special"><i class="bi bi-circle"></i> Special character</li>
+                        </ul>
+                        <div class="field-error" id="err-password">At least 8 characters required</div>
                     </div>
                     <div>
                         <label class="form-label">Confirm Password <span class="required-star">*</span></label>
@@ -449,12 +503,60 @@
 
     function validateUsername(el) { setValid(el, 'err-username', el.value.trim().length > 0); }
     function validatePassword(el) {
-        setValid(el, 'err-password', el.value.length >= 6);
+        setValid(el, 'err-password', el.value.length >= 8);
         const c = document.getElementById('confirmPassword');
         if (c.value) validateConfirm(c);
     }
     function validateConfirm(el) {
         setValid(el, 'err-confirm', el.value === document.getElementById('password').value && el.value.length > 0);
+    }
+
+    function updateStrengthMeter(pwd) {
+        var fill = document.getElementById('strengthFill');
+        var label = document.getElementById('strengthLabel');
+        var reqs = {
+            length: pwd.length >= 8,
+            upper: /[A-Z]/.test(pwd),
+            lower: /[a-z]/.test(pwd),
+            digit: /\d/.test(pwd),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)
+        };
+
+        // Update requirement icons
+        document.getElementById('req-length').className = reqs.length ? 'met' : '';
+        document.getElementById('req-length').innerHTML = reqs.length ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>';
+        document.getElementById('req-length').innerHTML += ' 8+ characters';
+
+        document.getElementById('req-upper').className = reqs.upper ? 'met' : '';
+        document.getElementById('req-upper').innerHTML = reqs.upper ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>';
+        document.getElementById('req-upper').innerHTML += ' Uppercase letter';
+
+        document.getElementById('req-lower').className = reqs.lower ? 'met' : '';
+        document.getElementById('req-lower').innerHTML = reqs.lower ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>';
+        document.getElementById('req-lower').innerHTML += ' Lowercase letter';
+
+        document.getElementById('req-digit').className = reqs.digit ? 'met' : '';
+        document.getElementById('req-digit').innerHTML = reqs.digit ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>';
+        document.getElementById('req-digit').innerHTML += ' Number';
+
+        document.getElementById('req-special').className = reqs.special ? 'met' : '';
+        document.getElementById('req-special').innerHTML = reqs.special ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-circle"></i>';
+        document.getElementById('req-special').innerHTML += ' Special char';
+
+        var score = Object.values(reqs).filter(Boolean).length;
+        var pct, color, text;
+        if (score <= 2) {
+            pct = 20; color = '#ef4444'; text = 'Weak';
+        } else if (score <= 4) {
+            pct = 60; color = '#f59e0b'; text = 'Medium';
+        } else {
+            pct = 100; color = '#10b981'; text = 'Strong';
+        }
+
+        fill.style.width = pct + '%';
+        fill.style.background = color;
+        label.textContent = pwd.length > 0 ? text : '';
+        label.style.color = color;
     }
     function validateEmail(el) {
         if (!el.value) { setValid(el, 'err-email', false); return; }
@@ -475,11 +577,23 @@
             const em = document.getElementById('emailField');
             let ok = true;
             if (!u.value.trim())        { validateUsername(u); ok = false; }
-            if (p.value.length < 6)     { validatePassword(p); ok = false; }
+            if (p.value.length < 8)     { validatePassword(p); ok = false; }
             if (c.value !== p.value)    { validateConfirm(c);  ok = false; }
             if (!em || !em.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value)) {
                 if (em) setValid(em, 'err-email', false);
                 ok = false;
+            }
+            // Check password strength
+            var score = 0;
+            if (p.value.length >= 8) score++;
+            if (/[A-Z]/.test(p.value)) score++;
+            if (/[a-z]/.test(p.value)) score++;
+            if (/\d/.test(p.value)) score++;
+            if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p.value)) score++;
+            if (score < 5) {
+                e.preventDefault();
+                showToast('Password must meet all strength requirements.');
+                return;
             }
             if (!ok) { e.preventDefault(); showToast('Please fix the errors above.'); }
         });

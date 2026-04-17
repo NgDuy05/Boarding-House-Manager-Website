@@ -164,6 +164,7 @@
                                 <th>Customer</th>
                                 <th>Email</th>
                                 <th>Phone</th>
+                                <th>CCCD</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center pe-4">Actions</th>
                             </tr>
@@ -197,6 +198,7 @@
                                             </td>
                                             <td class="text-muted small">${not empty c.email ? c.email : '—'}</td>
                                             <td class="text-muted small">${not empty c.phone ? c.phone : '—'}</td>
+                                            <td class="text-muted small">${not empty c.cccd ? c.cccd : '—'}</td>
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${not c.isDeleted}">
