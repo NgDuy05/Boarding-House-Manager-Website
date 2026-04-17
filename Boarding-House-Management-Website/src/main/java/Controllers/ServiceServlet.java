@@ -177,11 +177,9 @@ public class ServiceServlet extends HttpServlet {
         }
 
         List<Service> services = serviceDAO.getAllServices();
-        String preselectedId = request.getParameter("serviceId");
 
         request.setAttribute("contractId",    contractId);
         request.setAttribute("services",      services);
-        request.setAttribute("preselectedId", preselectedId);
         request.getRequestDispatcher("/views/customer/requestService.jsp")
                 .forward(request, response);
     }
@@ -203,13 +201,28 @@ public class ServiceServlet extends HttpServlet {
             return;
         }
 
-        int        serviceId = Integer.parseInt(request.getParameter("serviceId"));
-        BigDecimal quantity  = new BigDecimal(request.getParameter("quantity"));
-        LocalDate  useDate   = LocalDate.parse(request.getParameter("usageDate"));
+        String[] serviceIdStrs = request.getParameterValues("serviceIds");
+        if (serviceIdStrs == null || serviceIdStrs.length == 0) {
+            response.sendRedirect(request.getContextPath()
+                    + "/services?action=requestForm&error=noservice");
+            return;
+        }
 
-        boolean ok = serviceDAO.requestService(contractId, serviceId, quantity, useDate, user.getUserId());
+        BigDecimal quantity = new BigDecimal(request.getParameter("quantity"));
+        LocalDate  useDate  = LocalDate.parse(request.getParameter("usageDate"));
 
-        if (ok) {
+        boolean allOk = true;
+        for (String sid : serviceIdStrs) {
+            try {
+                int serviceId = Integer.parseInt(sid.trim());
+                boolean ok = serviceDAO.requestService(contractId, serviceId, quantity, useDate, user.getUserId());
+                if (!ok) allOk = false;
+            } catch (NumberFormatException e) {
+                allOk = false;
+            }
+        }
+
+        if (allOk) {
             response.sendRedirect(request.getContextPath()
                     + "/services?action=myHistory&success=requested");
         } else {

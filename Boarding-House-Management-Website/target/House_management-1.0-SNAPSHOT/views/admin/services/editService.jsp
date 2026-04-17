@@ -52,9 +52,33 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Image filename</label>
-                            <input type="text" name="image" class="form-control"
-                                   value="${service.image}">
+                            <label class="form-label fw-semibold">Service Image</label>
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="position-relative">
+                                    <div id="serviceImagePreview" class="rounded overflow-hidden bg-light d-flex align-items-center justify-content-center"
+                                         style="width:160px;height:120px;border:2px dashed #ccc;cursor:pointer;"
+                                         onclick="document.getElementById('serviceImageInput').click()">
+                                        <c:choose>
+                                            <c:when test="${not empty service.image}">
+                                                <img src="${pageContext.request.contextPath}/${service.image}"
+                                                     style="width:100%;height:100%;object-fit:cover;"
+                                                     id="serviceImgTag" alt="Service image">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <i class="bi bi-image text-muted" style="font-size:32px;"></i>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <input type="file" id="serviceImageInput" accept="image/*" style="display:none"
+                                           onchange="handleServiceImageUpload(this)">
+                                    <input type="hidden" name="image" id="serviceImagePath" value="${service.image}">
+                                </div>
+                                <div>
+                                    <div class="small text-muted mb-1">Click to upload service image</div>
+                                    <div class="small text-muted">JPG, PNG - Max 5MB</div>
+                                    <div class="small text-muted mt-1">Current: ${not empty service.image ? service.image : 'None'}</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -71,5 +95,50 @@
             </div>
         </div>
     </div>
+
+    <script>
+    function handleServiceImageUpload(input) {
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+
+            if (!file.type.startsWith('image/')) {
+                alert('Only image files are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('image', file);
+            formData.append('type', 'service');
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var preview = document.getElementById('serviceImagePreview');
+                preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            };
+            reader.readAsDataURL(file);
+
+            fetch('${pageContext.request.contextPath}/upload-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Upload failed: ' + data.error);
+                } else {
+                    document.getElementById('serviceImagePath').value = data.fullPath;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Could not upload image');
+            });
+        }
+    }
+    </script>
 
 </t:layout>

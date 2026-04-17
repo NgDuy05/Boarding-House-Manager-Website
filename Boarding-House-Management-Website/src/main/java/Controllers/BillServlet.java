@@ -140,7 +140,7 @@ public class BillServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // Pass contracts (with room info) and price categories for dropdowns
-        request.setAttribute("contracts",  contractDAO.getAllWithDetails(null, null));
+        request.setAttribute("contracts",  contractDAO.getActiveForBilling());
         request.setAttribute("categories", priceDAO.getAllPriceCategories());
         request.getRequestDispatcher("/views/admin/bills/createBill.jsp").forward(request, response);
     }

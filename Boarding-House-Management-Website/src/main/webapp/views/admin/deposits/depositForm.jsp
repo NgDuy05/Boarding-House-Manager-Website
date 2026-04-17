@@ -16,7 +16,7 @@
 <div class="container-fluid">
 <div class="row flex-nowrap admin-layout-row">
 <%@ include file="../sidebar.jsp" %>
-<main class="col admin-main px-4 py-4"><div style="max-width:560px;">
+<main class="col admin-main px-4 py-4"><div style="max-width:560px; margin:0 auto;">
     <div class="d-flex align-items-center gap-2 mb-4">
         <a href="${pageContext.request.contextPath}/deposit?action=all" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>

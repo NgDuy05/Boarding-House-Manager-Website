@@ -44,6 +44,30 @@
         </a>
     </div>
 
+    <c:if test="${contract.status == 'pending'}">
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-info-circle-fill fs-5"></i>
+            <span>Your contract is awaiting administrator approval. You will be notified once it is approved.</span>
+        </div>
+    </c:if>
+
+    <c:if test="${contract.status == 'cancel_pending'}">
+        <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-hourglass-split fs-5"></i>
+            <span>Your cancellation request is being reviewed by the administrator.</span>
+        </div>
+    </c:if>
+
+    <c:if test="${contract.status == 'active'}">
+        <div class="d-flex justify-content-end mb-3">
+            <a href="${pageContext.request.contextPath}/contract?action=requestCancellation&id=${contract.contractId}"
+               class="btn btn-outline-danger btn-sm fw-semibold"
+               onclick="return confirm('Request to cancel this contract? An administrator will review your request.')">
+                <i class="bi bi-x-circle me-1"></i>Request Cancellation
+            </a>
+        </div>
+    </c:if>
+
     <div class="row g-4">
         <%-- Left: info --%>
         <div class="col-lg-4">
@@ -178,7 +202,7 @@
                                                         <td class="ps-4 text-muted small">#${b.billId}</td>
                                                         <td>${b.period}</td>
                                                         <td class="text-muted small">${b.dueDate}</td>
-                                                        <td class="fw-semibold text-success">${b.totalAmount}&#8363;</td>
+                                                        <td class="fw-semibold text-success"><fmt:formatNumber value="${b.totalAmount}" groupingUsed="true" maxFractionDigits="0"/>&#8363;</td>
                                                         <td class="text-center pe-4">
                                                             <c:choose>
                                                                 <c:when test="${b.status=='paid'}"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-check-circle me-1"></i>Paid</span></c:when>

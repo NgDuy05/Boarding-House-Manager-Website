@@ -17,14 +17,17 @@
             <table class="table table-hover table-striped mb-0 align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th style="width: 60px;">#</th>
+                        <th style="width: 50px;">#</th>
                         <th>Room Number</th>
                         <th>Status</th>
-                        <th style="width: 200px; text-align: center;">Action</th>
+                        <th>Current Tenant</th>
+                        <th>Contract ID</th>
+                        <th style="width: 180px; text-align: center;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:forEach var="room" items="${rooms}" varStatus="s">
+                        <c:set var="contract" value="${roomContracts[room.roomId]}" />
                         <tr>
                             <td>${s.index + 1}</td>
                             <td>
@@ -41,6 +44,29 @@
                                     </c:when>
                                     <c:otherwise>
                                         <span class="badge bg-warning text-dark fs-6">Maintenance</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty contract}">
+                                        <span class="text-dark">${contract.primaryTenantName}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted">-</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty contract}">
+                                        <a href="${pageContext.request.contextPath}/contract?action=detail&id=${contract.contractId}"
+                                           class="text-primary text-decoration-none">
+                                            #${contract.contractId}
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted">-</span>
                                     </c:otherwise>
                                 </c:choose>
                             </td>
@@ -64,7 +90,7 @@
 
                     <c:if test="${empty rooms}">
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-5">
+                            <td colspan="6" class="text-center text-muted py-5">
                                 <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                 No rooms found.
                             </td>
@@ -75,7 +101,7 @@
         </div>
 
         <div class="card-footer text-muted d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span>Total: <strong>${totalRooms}</strong> room(s)</span>
+            <span>Total: <strong>${totalItems}</strong> room(s)</span>
             <c:if test="${totalPages > 1}">
                 <nav>
                     <ul class="pagination pagination-sm mb-0">

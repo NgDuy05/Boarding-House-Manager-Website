@@ -260,7 +260,7 @@ function clearRows() {
 function updateLine(tr) {
     const qty   = parseFloat(tr.querySelector('.item-qty').value)   || 0;
     const price = parseFloat(tr.querySelector('.item-price').value) || 0;
-    tr.querySelector('.line-total').textContent = fmtVnd(qty * price);
+    tr.querySelector('.line-total').innerHTML = fmtVnd(qty * price);
 }
 
 function recalcTotal() {
@@ -270,7 +270,7 @@ function recalcTotal() {
         const price = parseFloat(tr.querySelector('.item-price').value) || 0;
         total += qty * price;
     });
-    document.getElementById('totalDisplay').textContent = fmtVnd(total);
+    document.getElementById('totalDisplay').innerHTML = fmtVnd(total);
     document.getElementById('hiddenTotal').value = Math.round(total);
 }
 

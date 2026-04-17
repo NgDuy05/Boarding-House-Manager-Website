@@ -100,7 +100,7 @@
                             <div class="svc-card">
                                 <c:choose>
                                     <c:when test="${not empty svc.image}">
-                                        <img src="${pageContext.request.contextPath}/assets/images/service/${svc.image}"
+                                        <img src="${pageContext.request.contextPath}/${svc.image}"
                                              class="svc-img" alt="${svc.serviceName}"
                                              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                                         <div class="svc-img-placeholder" style="display:none">

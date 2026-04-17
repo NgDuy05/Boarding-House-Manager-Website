@@ -5,18 +5,21 @@
 
 <t:layout>
 
-    <div class="d-flex align-items-center gap-2 mb-4">
-        <a href="${pageContext.request.contextPath}/facility"
-           class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
-        <h4 class="mb-0"><i class="bi bi-wrench me-2"></i>Facility Detail</h4>
-    </div>
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="${pageContext.request.contextPath}/facility">Facilities</a>
+            </li>
+            <li class="breadcrumb-item active">Facility Detail</li>
+        </ol>
+    </nav>
 
     <c:if test="${empty facility}">
         <div class="alert alert-danger">Facility not found.</div>
     </c:if>
 
     <c:if test="${not empty facility}">
-        <div class="card shadow-sm border-0 mb-3" style="max-width:640px;">
+        <div class="card shadow-sm border-0 mb-3 mx-auto" style="max-width:640px;">
             <div class="card-header bg-white fw-semibold">
                 <i class="bi bi-wrench me-2"></i>${facility.facilityName}
             </div>

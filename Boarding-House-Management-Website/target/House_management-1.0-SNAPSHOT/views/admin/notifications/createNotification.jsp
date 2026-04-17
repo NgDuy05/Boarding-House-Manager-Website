@@ -9,7 +9,7 @@
         <h4 class="mb-0"><i class="bi bi-bell-plus me-2"></i>New Notification</h4>
     </div>
 
-    <div class="card shadow-sm border-0" style="max-width:600px;">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width:600px;">
         <div class="card-body">
             <form method="post" action="${pageContext.request.contextPath}/notification">
                 <input type="hidden" name="action" value="create">

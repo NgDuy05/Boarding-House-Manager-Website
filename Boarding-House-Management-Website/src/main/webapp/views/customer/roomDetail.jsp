@@ -285,7 +285,7 @@
                     <c:choose>
                         <c:when test="${not empty room.image}">
                             <img class="view-img"
-                                 src="${pageContext.request.contextPath}/assets/images/room/${room.image}"
+                                 src="${pageContext.request.contextPath}/${room.image}"
                                  alt="Room ${room.roomNumber}"
                                  onerror="this.style.display='none';document.getElementById('img-placeholder').style.display='flex';">
                             <div id="img-placeholder" class="view-img-placeholder" style="display:none;">
@@ -409,7 +409,7 @@
             <div class="img-gallery-grid">
                 <%-- Main image shown as thumbnail --%>
                 <img class="img-thumb active"
-                     src="${pageContext.request.contextPath}/assets/images/room/${room.image}"
+                     src="${pageContext.request.contextPath}/${room.image}"
                      alt="Room ${room.roomNumber}"
                      onclick="selectThumb(this)"
                      onerror="this.style.display='none'">

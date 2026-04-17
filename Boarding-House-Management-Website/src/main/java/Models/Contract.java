@@ -130,6 +130,9 @@ public class Contract {
         if (status == null) return "Unknown";
         switch (status.toLowerCase()) {
             case "active":     return "Active";
+            case "pending":    return "Pending Approval";
+            case "rejected":   return "Rejected";
+            case "cancel_pending": return "Cancellation Requested";
             case "terminated": return "Terminated";
             case "expired":    return "Expired";
             default:           return status;
@@ -139,9 +142,16 @@ public class Contract {
         if (status == null) return "secondary";
         switch (status.toLowerCase()) {
             case "active":     return "success";
+            case "pending":    return "warning";
+            case "rejected":   return "secondary";
+            case "cancel_pending": return "warning";
             case "terminated": return "danger";
             case "expired":    return "secondary";
             default:           return "warning";
         }
     }
+    public boolean isPending()  { return "pending".equalsIgnoreCase(status); }
+    public boolean isRejected() { return "rejected".equalsIgnoreCase(status); }
+    public boolean isActive()   { return "active".equalsIgnoreCase(status); }
+    public boolean isCancellationRequested() { return "cancel_pending".equalsIgnoreCase(status); }
 }

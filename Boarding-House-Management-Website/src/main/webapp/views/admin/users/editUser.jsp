@@ -51,7 +51,7 @@
 <div class="container-fluid">
 <div class="row flex-nowrap admin-layout-row">
 <%@ include file="../sidebar.jsp" %>
-<main class="col admin-main px-4 py-4"><div style="max-width: 680px;">
+<main class="col admin-main px-4 py-4"><div style="max-width: 680px; margin:0 auto;">
 
         <%-- Page header --%>
         <div class="page-header d-flex align-items-center gap-3">

@@ -80,6 +80,18 @@ public class ContractServlet extends HttpServlet {
             case "delete":
                 deleteContract(request, response);
                 break;
+            case "approve":
+                approveContract(request, response);
+                break;
+            case "reject":
+                rejectContract(request, response);
+                break;
+            case "approveCancellation":
+                approveCancellation(request, response);
+                break;
+            case "rejectCancellation":
+                rejectCancellation(request, response);
+                break;
             case "addTenant":
                 showAddTenantForm(request, response);
                 break;
@@ -108,6 +120,12 @@ public class ContractServlet extends HttpServlet {
             case "signContract":
                 showSignContractForm(request, response);
                 break;
+            case "getUserInfo":
+                getUserInfo(request, response);
+                break;
+            case "requestCancellation":
+                requestCancellation(request, response);
+                break;
 
             default:
                 response.sendRedirect(request.getContextPath() + "/contract?action=list");
@@ -130,6 +148,9 @@ public class ContractServlet extends HttpServlet {
                 break;
             case "customerSign":
                 customerSignContract(request, response);
+                break;
+            case "requestCancellation":
+                requestCancellation(request, response);
                 break;
             case "update":
                 updateContract(request, response);
@@ -161,7 +182,9 @@ public class ContractServlet extends HttpServlet {
 
         // stats
         long activeCount     = all.stream().filter(c -> "active".equals(c.getStatus())).count();
+        long pendingCount    = all.stream().filter(c -> "pending".equals(c.getStatus())).count();
         long terminatedCount = all.stream().filter(c -> "terminated".equals(c.getStatus())).count();
+        int  cancellationCount = contractDAO.countCancellationRequested();
 
         // pagination
         int totalItems = all.size();
@@ -174,7 +197,9 @@ public class ContractServlet extends HttpServlet {
 
         request.setAttribute("contracts",       contracts);
         request.setAttribute("activeCount",     activeCount);
+        request.setAttribute("pendingCount",    pendingCount);
         request.setAttribute("terminatedCount", terminatedCount);
+        request.setAttribute("cancellationCount", cancellationCount);
         request.setAttribute("totalItems",      totalItems);
         request.setAttribute("totalPages",      totalPages);
         request.setAttribute("currentPage",     page);
@@ -256,6 +281,13 @@ public class ContractServlet extends HttpServlet {
 
             int newId = contractDAO.insertWithTenant(c, userId);
 
+            // Check if user already has active contract (insertWithTenant returns -2)
+            if (newId == -2) {
+                forwardBackToCreate(request, response,
+                    "This tenant already has an active contract. Please terminate their current contract first.");
+                return;
+            }
+
             // Also create a contract_tenant record from the form fields if provided
             String tenantName = request.getParameter("tenantName");
             if (newId > 0 && tenantName != null && !tenantName.trim().isEmpty()) {
@@ -285,11 +317,6 @@ public class ContractServlet extends HttpServlet {
                             facilityDAO.upsertRoomFacility(roomId, fid, qty);
                         } catch (NumberFormatException ignored) {}
                     }
-                }
-
-                // Create first month's bill pro-rata (only if contract starts mid-month)
-                if (startDate.getDayOfMonth() > 1) {
-                    billDAO.createFirstMonthBill(newId, monthlyRent, startDate);
                 }
 
                 flash(request, "contractSuccess", "Contract #" + newId + " created successfully!");
@@ -378,7 +405,7 @@ public class ContractServlet extends HttpServlet {
                 }
             }
 
-            Contract c = new Contract(0, roomId, startDate, endDate, deposit, "active", false);
+            Contract c = new Contract(0, roomId, startDate, endDate, deposit, "pending", false);
             c.setDurationMonths(durationMonths);
             c.setMonthlyRent(monthlyRent);
             int newId = contractDAO.insertWithTenant(c, user.getUserId());
@@ -399,12 +426,7 @@ public class ContractServlet extends HttpServlet {
                     contractDAO.updateMonthlyRent(newId, monthlyRent);
                 }
 
-                // Create first month's bill pro-rata (only if contract starts mid-month)
-                if (startDate.getDayOfMonth() > 1) {
-                    billDAO.createFirstMonthBill(newId, monthlyRent, startDate);
-                }
-
-                flash(request, "contractSuccess", "Contract signed! Your contract #" + newId + " is now active.");
+                flash(request, "contractSuccess", "Contract signed! Your contract request #" + newId + " is pending approval.");
                 response.sendRedirect(request.getContextPath() + "/contract?action=mydetail&id=" + newId);
             } else {
                 flash(request, "contractError", "Could not sign contract. The room may no longer be available.");
@@ -560,6 +582,122 @@ public class ContractServlet extends HttpServlet {
     }
 
     // =====================================================================
+    // ADMIN – APPROVE / REJECT
+    // =====================================================================
+    private void approveContract(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (!isAdminOrStaff(request)) { redirect401(request, response); return; }
+
+        int contractId = Integer.parseInt(request.getParameter("id"));
+        contractDAO.approve(contractId);
+        flash(request, "contractSuccess", "Contract #" + contractId + " approved and now active.");
+        response.sendRedirect(request.getContextPath() + "/contract?action=detail&id=" + contractId);
+    }
+
+    private void rejectContract(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (!isAdminOrStaff(request)) { redirect401(request, response); return; }
+
+        int contractId = Integer.parseInt(request.getParameter("id"));
+        contractDAO.reject(contractId);
+        flash(request, "contractSuccess", "Contract #" + contractId + " rejected.");
+        response.sendRedirect(request.getContextPath() + "/contract?action=list");
+    }
+
+    // =====================================================================
+    // CUSTOMER – REQUEST CANCELLATION
+    // =====================================================================
+    private void requestCancellation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        User user = currentUser(request);
+        if (user == null) { response.sendRedirect(request.getContextPath() + "/auth?action=login"); return; }
+
+        int contractId = Integer.parseInt(request.getParameter("id"));
+        Contract contract = contractDAO.getDetailById(contractId);
+        if (contract == null || !contract.isActive()) {
+            flash(request, "contractError", "Contract not found or cannot be cancelled.");
+            response.sendRedirect(request.getContextPath() + "/contract?action=mycontract");
+            return;
+        }
+
+        boolean ok = contractDAO.requestCancellation(contractId);
+        if (ok) {
+            flash(request, "contractSuccess", "Cancellation request submitted. An administrator will review it shortly.");
+        } else {
+            flash(request, "contractError", "Could not submit cancellation request.");
+        }
+        response.sendRedirect(request.getContextPath() + "/contract?action=mydetail&id=" + contractId);
+    }
+
+    // =====================================================================
+    // ADMIN – APPROVE / REJECT CANCELLATION
+    // =====================================================================
+    private void approveCancellation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (!isAdminOrStaff(request)) { redirect401(request, response); return; }
+
+        int contractId = Integer.parseInt(request.getParameter("id"));
+        Contract contract = contractDAO.getDetailById(contractId);
+        if (contract == null) {
+            flash(request, "contractError", "Contract not found.");
+            response.sendRedirect(request.getContextPath() + "/contract?action=list");
+            return;
+        }
+
+        // Run the standard termination logic (status → terminated, room freed, deposit handled)
+        contractDAO.terminate(contractId, contract.getRoomId(), "Cancellation approved by admin (customer requested)");
+
+        // Get current user for deposit transaction
+        User currentUser = currentUser(request);
+        int createdBy = (currentUser != null) ? currentUser.getUserId() : 1;
+
+        // Check deposit balance
+        BigDecimal depositBalance = depositDAO.getBalance(contractId);
+        LocalDate today = LocalDate.now();
+        String terminationType;
+        String message;
+
+        if (contract.getEndDate() != null && !contract.getEndDate().isAfter(today)) {
+            terminationType = "fulfilled";
+            if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
+                DepositTransaction refund = new DepositTransaction();
+                refund.setContractId(contractId);
+                refund.setAmount(depositBalance);
+                refund.setTransactionType(DepositTransaction.TYPE_REFUND);
+                refund.setNote("Hoan tra coc khi het han hop dong");
+                refund.setCreatedBy(createdBy);
+                depositDAO.insert(refund);
+            }
+            message = "Contract #" + contractId + " cancellation approved and contract terminated. Deposit refunded.";
+        } else {
+            terminationType = "early";
+            if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
+                DepositTransaction deduction = new DepositTransaction();
+                deduction.setContractId(contractId);
+                deduction.setAmount(depositBalance);
+                deduction.setTransactionType(DepositTransaction.TYPE_DEDUCTION);
+                deduction.setNote("Khong hoan tra coc do chấm dứt trước hạn (khach hang yeu cau huy).");
+                deduction.setCreatedBy(createdBy);
+                depositDAO.insert(deduction);
+            }
+            message = "Contract #" + contractId + " cancellation approved and contract terminated. Deposit retained.";
+        }
+
+        flash(request, "contractSuccess", message);
+        response.sendRedirect(request.getContextPath() + "/contract?action=list");
+    }
+
+    private void rejectCancellation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (!isAdminOrStaff(request)) { redirect401(request, response); return; }
+
+        int contractId = Integer.parseInt(request.getParameter("id"));
+        contractDAO.rejectCancellation(contractId);
+        flash(request, "contractSuccess", "Cancellation request rejected. Contract #" + contractId + " remains active.");
+        response.sendRedirect(request.getContextPath() + "/contract?action=list");
+    }
+
+    // =====================================================================
     // ADMIN – CO-TENANTS
     // =====================================================================
     private void showAddTenantForm(HttpServletRequest request, HttpServletResponse response)
@@ -629,8 +767,17 @@ public class ContractServlet extends HttpServlet {
         User user = currentUser(request);
         if (user == null) { response.sendRedirect(request.getContextPath() + "/auth?action=login"); return; }
 
-        List<Contract> contracts = contractDAO.getContractsByUserId(user.getUserId());
+        int totalItems = contractDAO.countContractsByUserId(user.getUserId());
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / PAGE_SIZE));
+        int page = parsePage(request.getParameter("page"), totalPages);
+        int offset = (page - 1) * PAGE_SIZE;
+
+        List<Contract> contracts = contractDAO.getContractsByUserIdPaginated(user.getUserId(), PAGE_SIZE, offset);
         request.setAttribute("contracts", contracts);
+        request.setAttribute("totalItems", totalItems);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", PAGE_SIZE);
         forward(request, response, "/views/customer/contracts.jsp");
     }
 
@@ -816,5 +963,46 @@ public class ContractServlet extends HttpServlet {
     private boolean isValidPhone(String phone) {
         return phone == null || phone.isBlank()
             || phone.matches("^(0[35789])\\d{8}$");
+    }
+
+    // =====================================================================
+    // AJAX: Get user info as JSON (for auto-fill in createContract.jsp)
+    // =====================================================================
+    private void getUserInfo(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        try {
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.isEmpty()) {
+                response.getWriter().write("{\"error\":\"id required\"}");
+                return;
+            }
+            int userId = Integer.parseInt(idStr);
+            User u = userDAO.getUserById(userId);
+            if (u == null) {
+                response.getWriter().write("{\"error\":\"user not found\"}");
+                return;
+            }
+            // Return JSON with user info
+            String json = String.format(
+                "{\"fullName\":\"%s\",\"phone\":\"%s\",\"cccd\":\"%s\"}",
+                escapeJson(u.getFullName() != null ? u.getFullName() : ""),
+                escapeJson(u.getPhone() != null ? u.getPhone() : ""),
+                escapeJson(u.getCccd() != null ? u.getCccd() : "")
+            );
+            response.getWriter().write(json);
+        } catch (Exception e) {
+            response.setStatus(400);
+            response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

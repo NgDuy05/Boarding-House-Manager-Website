@@ -47,7 +47,7 @@
 <div class="container-fluid">
 <div class="row flex-nowrap admin-layout-row">
 <%@ include file="../sidebar.jsp" %>
-<main class="col admin-main px-4 py-4"><div style="max-width:660px">
+<main class="col admin-main px-4 py-4"><div style="max-width:660px; margin:0 auto;">
 
         <div class="page-header d-flex align-items-center gap-3">
             <div class="avatar-circle">
@@ -110,6 +110,14 @@
                                        pattern="^(0|\+84)[0-9]{9}$"
                                        title="10-digit phone number starting with 0 or +84"
                                        value="${customer.phone}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">CCCD / Citizen ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                <input type="text" class="form-control bg-light"
+                                       value="${customer.cccd}" readonly>
                             </div>
                         </div>
                     </div>

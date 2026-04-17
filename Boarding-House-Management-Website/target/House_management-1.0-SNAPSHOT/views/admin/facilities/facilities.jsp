@@ -6,10 +6,10 @@
 <t:layout>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-shield-check me-2"></i>Room Amenities</h2>
+        <h2><i class="bi bi-wrench me-2"></i>Facilities</h2>
         <a href="${pageContext.request.contextPath}/facility?action=create"
            class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Add Amenity
+            <i class="bi bi-plus-circle me-1"></i> Add Facility
         </a>
     </div>
 
@@ -101,7 +101,7 @@
                 <p>No amenities found.</p>
                 <a href="${pageContext.request.contextPath}/facility?action=create"
                    class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Add First Amenity
+                    <i class="bi bi-plus-circle me-1"></i> Add First Facility
                 </a>
             </div>
         </c:otherwise>

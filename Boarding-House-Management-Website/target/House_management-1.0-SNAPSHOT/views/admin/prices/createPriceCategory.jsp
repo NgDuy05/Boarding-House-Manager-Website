@@ -10,7 +10,7 @@
         <h4 class="mb-0"><i class="bi bi-tag me-2"></i>Add Price Category</h4>
     </div>
 
-    <div class="card shadow-sm border-0" style="max-width:520px;">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width:520px;">
         <div class="card-body">
             <form method="post" action="${pageContext.request.contextPath}/price">
                 <input type="hidden" name="action" value="create">
