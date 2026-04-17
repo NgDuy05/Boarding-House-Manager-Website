@@ -9,7 +9,7 @@
     body > div.container,
     body > div.container-fluid { flex: 1; }
 </style>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top">
 
     <div class="container">
 
