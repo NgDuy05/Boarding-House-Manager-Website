@@ -377,7 +377,7 @@ public class UserDAO extends DBContext {
 
     // ================= MAP RESULTSET =================
     private User mapUser(ResultSet rs) throws SQLException {
-        return new User(
+        User u = new User(
                 rs.getInt("user_id"),
                 rs.getString("userName"),
                 rs.getString("password"),
@@ -388,5 +388,7 @@ public class UserDAO extends DBContext {
                 rs.getString("image"),
                 rs.getBoolean("is_deleted")
         );
+        u.setCccd(rs.getString("cccd"));
+        return u;
     }
 }

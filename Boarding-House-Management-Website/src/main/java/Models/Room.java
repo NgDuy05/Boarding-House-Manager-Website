@@ -14,6 +14,7 @@ public class Room {
     private int        categoryId;
     private String     categoryName;
     private BigDecimal basePrice;
+    private BigDecimal pricePerDay;
 
     // Physical attributes
     private BigDecimal areaMSquare;   // area_m2 column
@@ -47,6 +48,7 @@ public class Room {
     public int        getCategoryId()   { return categoryId; }
     public String     getCategoryName() { return categoryName; }
     public BigDecimal getBasePrice()    { return basePrice; }
+    public BigDecimal getPricePerDay()  { return pricePerDay; }
     public BigDecimal getAreaMSquare()  { return areaMSquare; }
     public int        getMaxOccupants() { return maxOccupants; }
 
@@ -58,6 +60,7 @@ public class Room {
     public void setCategoryId(int categoryId)     { this.categoryId = categoryId; }
     public void setCategoryName(String n)         { this.categoryName = n; }
     public void setBasePrice(BigDecimal p)        { this.basePrice = p; }
+    public void setPricePerDay(BigDecimal p)    { this.pricePerDay = p; }
     public void setAreaMSquare(BigDecimal a)      { this.areaMSquare = a; }
     public void setMaxOccupants(int m)            { this.maxOccupants = m; }
 }

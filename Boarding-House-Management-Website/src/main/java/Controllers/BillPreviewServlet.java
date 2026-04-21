@@ -101,7 +101,7 @@ public class BillPreviewServlet extends HttpServlet {
             BigDecimal proratedRent = dailyRate.multiply(BigDecimal.valueOf(daysStayed)).setScale(0, java.math.RoundingMode.HALF_UP);
             items.add(buildItem(
                 "room", null, roomCategoryId,
-                "Tien phong " + daysStayed + " ngay ("
+                "Tien phong " + daysStayed + " Date ("
                     + startDay + "/" + periodStart.getMonthValue() + " - "
                     + daysInMonth + "/" + periodStart.getMonthValue() + ")",
                 BigDecimal.ONE, proratedRent
@@ -116,35 +116,58 @@ public class BillPreviewServlet extends HttpServlet {
         }
 
         // 2. Facility surcharges from room_facility (pro-rata for first month if mid-month start)
-        int facilityCategoryId = priceDAO.getCategoryIdByCode("AMENITY");
-        List<Map<String, Object>> facItems =
-            facilityDAO.getFacilitiesWithPriceForRoom(room.getRoomId());
-        for (Map<String, Object> fac : facItems) {
-            BigDecimal monthly = (BigDecimal) fac.get("monthlyPrice");
-            if (monthly == null || monthly.compareTo(BigDecimal.ZERO) <= 0) continue;
-            int qty = (int) fac.get("quantity");
-            if (isFirstPeriod) {
-                int startDay = contractStart.getDayOfMonth();
-                int daysInMonth = periodStart.lengthOfMonth();
-                int daysStayed = daysInMonth - startDay + 1;
-                BigDecimal dailyRate = monthly.divide(BigDecimal.valueOf(daysInMonth), 10, java.math.RoundingMode.HALF_UP);
-                BigDecimal prorated = dailyRate.multiply(BigDecimal.valueOf(daysStayed)).setScale(0, java.math.RoundingMode.HALF_UP);
-                items.add(buildItem(
-                    "amenity", (Integer) fac.get("facilityId"), facilityCategoryId,
-                    "Phu phi " + fac.get("facilityName") + " ("
-                        + daysStayed + " ngay)",
-                    BigDecimal.ONE, prorated
-                ));
-            } else {
-                items.add(buildItem(
-                    "amenity", (Integer) fac.get("facilityId"), facilityCategoryId,
-                    "Phu phi " + fac.get("facilityName")
-                        + (qty > 1 ? " x" + qty : "")
-                        + " thang " + periodStart.getMonthValue() + "/" + periodStart.getYear(),
-                    BigDecimal.valueOf(qty), monthly
-                ));
-            }
-        }
+//        int facilityCategoryId = priceDAO.getCategoryIdByCode("AMENITY");
+//        List<Map<String, Object>> facItems =
+//            facilityDAO.getFacilitiesWithPriceForRoom(room.getRoomId());
+//        for (Map<String, Object> fac : facItems) {
+//            BigDecimal monthly = (BigDecimal) fac.get("monthlyPrice");
+//            if (monthly == null || monthly.compareTo(BigDecimal.ZERO) <= 0) continue;
+//            int qty = (int) fac.get("quantity");
+//            if (isFirstPeriod) {
+//                int startDay = contractStart.getDayOfMonth();
+//                int daysInMonth = periodStart.lengthOfMonth();
+//                int daysStayed = daysInMonth - startDay + 1;
+//                BigDecimal dailyRate = monthly.divide(BigDecimal.valueOf(daysInMonth), 10, java.math.RoundingMode.HALF_UP);
+//                BigDecimal prorated = dailyRate.multiply(BigDecimal.valueOf(daysStayed)).setScale(0, java.math.RoundingMode.HALF_UP);
+//                items.add(buildItem(
+//                    "amenity", (Integer) fac.get("facilityId"), facilityCategoryId,
+//                    "Phu phi " + fac.get("facilityName") + " ("
+//                        + daysStayed + " ngay)",
+//                    BigDecimal.ONE, prorated
+//                ));
+//            } else {
+//                items.add(buildItem(
+//                    "amenity", (Integer) fac.get("facilityId"), facilityCategoryId,
+//                    "Phu phi " + fac.get("facilityName")
+//                        + (qty > 1 ? " x" + qty : "")
+//                        + " thang " + periodStart.getMonthValue() + "/" + periodStart.getYear(),
+//                    BigDecimal.valueOf(qty), monthly
+//                ));
+//            }
+//        }
+int facilityCategoryId = priceDAO.getCategoryIdByCode("AMENITY");
+
+List<Map<String, Object>> facItems =
+    facilityDAO.getFacilitiesWithPriceForRoom(room.getRoomId());
+
+for (Map<String, Object> fac : facItems) {
+
+    BigDecimal monthly = (BigDecimal) fac.get("monthlyPrice");
+    if (monthly == null || monthly.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+    int qty = (int) fac.get("quantity");
+
+    items.add(buildItem(
+        "amenity",
+        (Integer) fac.get("facilityId"),
+        facilityCategoryId,
+        "Phu phi " + fac.get("facilityName")
+            + (qty > 1 ? " x" + qty : "")
+            + " Month " + periodStart.getMonthValue() + "/" + periodStart.getYear(),
+        BigDecimal.valueOf(qty),
+        monthly
+    ));
+}
 
         // 3. Utility consumption (electricity, water, etc.)
         List<UtilityUsage> usages = utilityDAO.getUnbilledByRoomAndPeriod(room.getRoomId(), periodStart);
@@ -169,11 +192,14 @@ public class BillPreviewServlet extends HttpServlet {
         for (ServiceUsage su : services) {
             BigDecimal price = su.getUnitPrice() != null ? su.getUnitPrice() : BigDecimal.ZERO;
             int svcCatId = priceDAO.getCategoryIdByCode("SERVICE");
-            items.add(buildItem(
-                "service", su.getUsageId(), svcCatId,
-                su.getServiceName() + " x " + su.getQuantity() + " (ngay " + su.getUsageDate() + ")",
-                su.getQuantity(), price
-            ));
+            // Giả sử Model ServiceUsage của bạn đã có hàm getRequesterName() hoặc getUserName()
+String requesterName = su.getRequesterName() != null ? su.getRequesterName() : "Không rõ";
+
+items.add(buildItem(
+    "service", su.getUsageId(), svcCatId,
+    su.getServiceName() + " x " + su.getQuantity() + " (Date" + su.getUsageDate() + " - Y/c: " + requesterName + ")",
+    su.getQuantity(), price
+));
         }
 
         return items;
