@@ -20,6 +20,7 @@ public class User {
     private String role;
     private String image;
     private boolean isDeleted;
+    private String cccd;
 
     public User() {}
 
@@ -106,5 +107,12 @@ public class User {
     public void setIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
-    
+
+    public String getCccd() {
+        return cccd;
+    }
+
+    public void setCccd(String cccd) {
+        this.cccd = cccd;
+    }
 }

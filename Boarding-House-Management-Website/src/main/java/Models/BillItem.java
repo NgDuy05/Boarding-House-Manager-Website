@@ -86,4 +86,8 @@ public class BillItem {
     public Integer getSourceId()   { return sourceId; }
     public void    setSourceId(Integer sourceId)    { this.sourceId = sourceId; }
 
+    public void setRequesterName(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
 }

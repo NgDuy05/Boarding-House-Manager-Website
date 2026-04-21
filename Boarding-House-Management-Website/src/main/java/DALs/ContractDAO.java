@@ -137,6 +137,13 @@ public class ContractDAO extends DBContext {
                 st.executeUpdate();
             }
 
+            // Hủy tất cả bills của contract này (soft delete)
+            String cancelBills = "UPDATE bill SET is_deleted = 1 WHERE contract_id = ? AND is_deleted = 0";
+            try (PreparedStatement st3 = connection.prepareStatement(cancelBills)) {
+                st3.setInt(1, contractId);
+                st3.executeUpdate();
+            }
+
             // Trả phòng về available
             String updateRoom = "UPDATE room "
                     + "SET status = 'available' "
@@ -198,6 +205,19 @@ public class ContractDAO extends DBContext {
                 st.setString(idx++, kw); st.setString(idx++, kw); st.setString(idx++, kw);
             }
             ResultSet rs = st.executeQuery();
+            while (rs.next()) list.add(mapRich(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // 🔹 Contracts eligible for billing (active or pending only, not terminated/expired)
+    public List<Contract> getActiveForBilling() {
+        List<Contract> list = new ArrayList<>();
+        String sql = RICH_SELECT
+            + "WHERE c.is_deleted = 0 AND c.status IN ('active', 'pending') "
+            + "ORDER BY c.contract_id DESC";
+        try {
+            ResultSet rs = connection.prepareStatement(sql).executeQuery();
             while (rs.next()) list.add(mapRich(rs));
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
@@ -290,6 +310,11 @@ public class ContractDAO extends DBContext {
 
     // 🔹 Create contract + add primary tenant (transactional)
     public int insertWithTenant(Contract c, int primaryUserId) {
+        // Check if user already has an active contract
+        if (hasActiveContract(primaryUserId)) {
+            return -2; // Signal: user already has active contract
+        }
+
         String sql = "INSERT INTO contract(room_id, start_date, end_date, deposit, status, created_at, is_deleted, duration_months, monthly_rent) "
                    + "VALUES (?, ?, ?, ?, ?, GETDATE(), 0, ?, ?)";
         try {
@@ -301,7 +326,7 @@ public class ContractDAO extends DBContext {
                 st.setDate(2, Date.valueOf(c.getStartDate()));
                 st.setDate(3, c.getEndDate() != null ? Date.valueOf(c.getEndDate()) : null);
                 st.setBigDecimal(4, c.getDeposit() != null ? c.getDeposit() : BigDecimal.ZERO);
-                st.setString(5, "active");
+                st.setString(5, c.getStatus() != null ? c.getStatus() : "active");
                 st.setInt(6, c.getDurationMonths() != null ? c.getDurationMonths() : 12);
                 st.setBigDecimal(7, c.getMonthlyRent() != null ? c.getMonthlyRent() : BigDecimal.ZERO);
                 st.executeUpdate();
@@ -319,11 +344,13 @@ public class ContractDAO extends DBContext {
                 }
             }
 
-            // Mark room as occupied
-            try (PreparedStatement st3 = connection.prepareStatement(
-                    "UPDATE room SET status = 'occupied' WHERE room_id = ?")) {
-                st3.setInt(1, c.getRoomId());
-                st3.executeUpdate();
+            // Mark room as occupied only for active (not pending) contracts
+            if (!"pending".equals(c.getStatus())) {
+                try (PreparedStatement st3 = connection.prepareStatement(
+                        "UPDATE room SET status = 'occupied' WHERE room_id = ?")) {
+                    st3.setInt(1, c.getRoomId());
+                    st3.executeUpdate();
+                }
             }
 
             connection.commit();
@@ -337,12 +364,12 @@ public class ContractDAO extends DBContext {
         return -1;
     }
 
-    // 🔹 Check whether a user already has an overlapping active contract
+    // 🔹 Check whether a user already has an overlapping active or pending contract
     public boolean hasActiveContract(int userId) {
         String sql = "SELECT 1 FROM contract c "
                    + "JOIN contract_user cu ON cu.contract_id = c.contract_id "
                    + "WHERE cu.user_id = ? "
-                   + "AND c.status = 'active' "
+                   + "AND c.status IN ('active', 'pending') "
                    + "AND c.is_deleted = 0 "
                    + "AND (cu.left_at IS NULL OR cu.left_at > GETDATE())";
         try (PreparedStatement st = connection.prepareStatement(sql)) {
@@ -352,6 +379,71 @@ public class ContractDAO extends DBContext {
             e.printStackTrace();
         }
         return false;
+    }
+
+    // 🔹 Approve a pending contract: set status = active and mark room occupied
+    public void approve(int contractId) {
+        String updateContract = "UPDATE contract SET status = 'active' WHERE contract_id = ? AND status = 'pending'";
+        String updateRoom = "UPDATE room SET status = 'occupied' WHERE room_id = "
+                + "(SELECT room_id FROM contract WHERE contract_id = ?)";
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement st = connection.prepareStatement(updateContract)) {
+                st.setInt(1, contractId);
+                st.executeUpdate();
+            }
+            try (PreparedStatement st2 = connection.prepareStatement(updateRoom)) {
+                st2.setInt(1, contractId);
+                st2.executeUpdate();
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            e.printStackTrace();
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
+
+    // 🔹 Reject a pending contract: set status = rejected
+    public void reject(int contractId) {
+        String sql = "UPDATE contract SET status = 'rejected' WHERE contract_id = ? AND status = 'pending'";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, contractId);
+            st.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // 🔹 Customer requests cancellation: set status = cancel_pending
+    public boolean requestCancellation(int contractId) {
+        String sql = "UPDATE contract SET status = 'cancel_pending' "
+                + "WHERE contract_id = ? AND status = 'active'";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, contractId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // 🔹 Admin rejects cancellation request: set status back to active
+    public boolean rejectCancellation(int contractId) {
+        String sql = "UPDATE contract SET status = 'active' "
+                + "WHERE contract_id = ? AND status = 'cancel_pending'";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, contractId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // 🔹 Count contracts with cancellation requested
+    public int countCancellationRequested() {
+        String sql = "SELECT COUNT(*) FROM contract WHERE status = 'cancel_pending' AND is_deleted = 0";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
     }
 
     // Get set of userIds that currently have an active contract (for bulk check in create form)
@@ -383,7 +475,25 @@ public class ContractDAO extends DBContext {
         return null;
     }
 
-    // 🔹 Lấy contracts theo user_id (qua contract_user)
+    // 🔹 Lấy contracts theo user_id (qua contract_user) - paginated, with rich fields
+    public List<Contract> getContractsByUserIdPaginated(int userId, int limit, int offset) {
+        List<Contract> list = new ArrayList<>();
+        String sql = RICH_SELECT
+                + "JOIN contract_user cu ON c.contract_id = cu.contract_id "
+                + "WHERE cu.user_id = ? AND c.is_deleted = 0 "
+                + "ORDER BY c.contract_id DESC "
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, userId);
+            st.setInt(2, offset);
+            st.setInt(3, limit);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) list.add(mapRich(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // 🔹 Lấy contracts theo user_id (qua contract_user) - non-paginated, simple mapping
     public List<Contract> getContractsByUserId(int userId) {
         List<Contract> list = new ArrayList<>();
         String sql = "SELECT c.* FROM contract c "
@@ -393,13 +503,22 @@ public class ContractDAO extends DBContext {
         try (PreparedStatement st = connection.prepareStatement(sql)) {
             st.setInt(1, userId);
             ResultSet rs = st.executeQuery();
-            while (rs.next()) {
-                list.add(mapContract(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            while (rs.next()) list.add(mapContract(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
         return list;
+    }
+
+    // 🔹 Đếm contracts theo user_id
+    public int countContractsByUserId(int userId) {
+        String sql = "SELECT COUNT(*) FROM contract c "
+                + "JOIN contract_user cu ON c.contract_id = cu.contract_id "
+                + "WHERE cu.user_id = ? AND c.is_deleted = 0";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
     }
 
     // ==============================
