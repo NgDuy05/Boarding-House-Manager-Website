@@ -99,6 +99,47 @@ public class RoomServlet extends HttpServlet {
             case "edit":
                 updateRoom(request, response);
                 break;
+            case "saveFacilities":
+                saveFacilities(request, response);
+                break;
+        }
+    }
+
+    // ================= SAVE FACILITIES (AJAX JSON) =================
+    private void saveFacilities(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = request.getReader().readLine()) != null) sb.append(line);
+            String body = sb.toString();
+
+            // Parse roomId
+            int roomId = Integer.parseInt(body.replaceAll(".*\"roomId\"\\s*:\\s*(\\d+).*", "$1"));
+
+            // Soft-delete existing
+            facilityDAO.softDeleteRoomFacilities(roomId);
+
+            // Parse facilities array: [{facilityId:X,quantity:Y},...]
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("\\{\\s*\"facilityId\"\\s*:\\s*(\\d+)\\s*,\\s*\"quantity\"\\s*:\\s*(\\d+)\\s*\\}")
+                .matcher(body);
+
+            while (m.find()) {
+                int fid = Integer.parseInt(m.group(1));
+                int qty = Integer.parseInt(m.group(2));
+                if (qty > 0) {
+                    facilityDAO.upsertRoomFacility(roomId, fid, qty);
+                }
+            }
+
+            response.getWriter().write("{\"success\":true}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().write("{\"success\":false,\"error\":\"" + e.getMessage() + "\"}");
         }
     }
 
@@ -199,7 +240,7 @@ public class RoomServlet extends HttpServlet {
         }
 
         request.setAttribute("room",      room);
-        request.setAttribute("amenities", amenities);
+        request.setAttribute("amenities", facilityDAO.getAllFacilities());
         request.setAttribute("category",  category);
         request.getRequestDispatcher("/views/customer/roomDetail.jsp")
                 .forward(request, response);
@@ -281,8 +322,12 @@ public class RoomServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Room room = roomDAO.getRoomById(id);
         List<RoomCategory> categories = categoryDAO.getAllCategories();
+        List<Models.RoomAmenity> roomFacilities = facilityDAO.getAmenitiesByRoomId(id);
+        List<Models.Facility> allFacilities = facilityDAO.getAllFacilities();
         request.setAttribute("room", room);
         request.setAttribute("categories", categories);
+        request.setAttribute("roomFacilities", roomFacilities);
+        request.setAttribute("allFacilities", allFacilities);
         request.getRequestDispatcher("/views/admin/rooms/editRoom.jsp")
                 .forward(request, response);
     }
@@ -312,6 +357,23 @@ public class RoomServlet extends HttpServlet {
             try { room.setMaxOccupants(Integer.parseInt(maxOccParam.trim())); } catch (NumberFormatException ignored) {}
         }
         roomDAO.updateRoom(room);
+
+        // Save room facilities
+        facilityDAO.softDeleteRoomFacilities(id);
+        String[] facilityIds = request.getParameterValues("facilityId");
+        if (facilityIds != null) {
+            for (String fid : facilityIds) {
+                String qtyParam = request.getParameter("qty_" + fid);
+                int qty = 1;
+                if (qtyParam != null && !qtyParam.trim().isEmpty()) {
+                    try { qty = Integer.parseInt(qtyParam.trim()); } catch (NumberFormatException ignored) {}
+                }
+                if (qty > 0) {
+                    facilityDAO.upsertRoomFacility(id, Integer.parseInt(fid), qty);
+                }
+            }
+        }
+
         response.sendRedirect("room?action=list");
     }
 
@@ -333,6 +395,8 @@ public class RoomServlet extends HttpServlet {
         request.setAttribute("room", room);
         // Pass resident history for this room
         request.setAttribute("tenantHistory", contractDAO.getTenantHistoryByRoomId(id));
+        // Pass amenities (with image + price) for this room
+        request.setAttribute("roomAmenities", facilityDAO.getAmenitiesByRoomId(id));
         request.getRequestDispatcher("/views/admin/rooms/roomDetail.jsp")
                 .forward(request, response);
     }

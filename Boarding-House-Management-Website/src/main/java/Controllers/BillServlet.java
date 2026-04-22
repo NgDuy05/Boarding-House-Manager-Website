@@ -91,8 +91,15 @@ public class BillServlet extends HttpServlet {
     // ===============================
     private void listBills(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+ 
         List<Bill> all = billDAO.getAllBills();
+ 
+        // Tính tổng toàn bộ (không phụ thuộc trang hiện tại)
+        long paidCount   = all.stream().filter(b -> "paid".equals(b.getStatus())).count();
+        long unpaidCount = all.stream().filter(b -> "pending".equals(b.getStatus())).count();
+        request.setAttribute("paidCount",   paidCount);
+        request.setAttribute("unpaidCount", unpaidCount);
+ 
         applyPaginationAttrs(request, all, "bills");
         request.getRequestDispatcher("/views/admin/bills/bills.jsp").forward(request, response);
     }

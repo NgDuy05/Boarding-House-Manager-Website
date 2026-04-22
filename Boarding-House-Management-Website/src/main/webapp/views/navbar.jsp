@@ -1,15 +1,21 @@
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
 <style>
     html, body { height: 100%; }
-    body { min-height: 100vh; display: flex; flex-direction: column; }
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 56px; /* offset fixed-top navbar height */
+    }
     body > .container,
     body > .container-fluid,
     body > div.container,
     body > div.container-fluid { flex: 1; }
 </style>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow fixed-top">
 
     <div class="container">
 
@@ -282,18 +288,27 @@
                                data-bs-toggle="dropdown">
 
                                 <c:choose>
-                                    <c:when test="${not empty sessionScope.user.image}">
+                                    <c:when test="${fn:contains(sessionScope.user.image, '/')}">
+                                        <%-- Full relative path e.g. assets/images/user/xxx.jpg --%>
                                         <img src="${pageContext.request.contextPath}/${sessionScope.user.image}"
-                                             width="32"
-                                             height="32"
+                                             width="32" height="32"
                                              class="rounded-circle me-2"
-                                             style="object-fit:cover;">
+                                             style="object-fit:cover;"
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/images/user/user.jpg'">
+                                    </c:when>
+                                    <c:when test="${not empty sessionScope.user.image}">
+                                        <%-- Bare filename e.g. user.jpg or default.png --%>
+                                        <img src="${pageContext.request.contextPath}/assets/images/user/${sessionScope.user.image}"
+                                             width="32" height="32"
+                                             class="rounded-circle me-2"
+                                             style="object-fit:cover;"
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/images/user/user.jpg'">
                                     </c:when>
                                     <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/assets/images/user/avatar.png"
-                                             width="32"
-                                             height="32"
-                                             class="rounded-circle me-2">
+                                        <img src="${pageContext.request.contextPath}/assets/images/user/user.jpg"
+                                             width="32" height="32"
+                                             class="rounded-circle me-2"
+                                             style="object-fit:cover;">
                                     </c:otherwise>
                                 </c:choose>
 
