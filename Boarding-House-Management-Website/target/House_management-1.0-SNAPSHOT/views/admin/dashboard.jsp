@@ -414,36 +414,69 @@
                 </c:forEach>
             ];
 
+            function fmtVnd(v) {
+                if (v >= 1000000000) return (v / 1000000000).toFixed(1) + ' tỷ';
+                if (v >= 1000000)    return (v / 1000000).toFixed(1) + ' tr';
+                if (v >= 1000)       return (v / 1000).toFixed(0) + 'K';
+                return v.toLocaleString('vi-VN');
+            }
+
             new Chart(document.getElementById('revenueBar'), {
                 type: 'bar',
                 data: {
                     labels: revenueData.map(function (r) { return r.month; }),
                     datasets: [
                         {
-                            label: 'Collected',
+                            label: 'Đã thu',
                             data: revenueData.map(function (r) { return r.paid; }),
-                            backgroundColor: '#198754',
-                            borderRadius: 4
+                            backgroundColor: 'rgba(25, 135, 84, 0.85)',
+                            borderColor: '#198754',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            borderSkipped: false
                         },
                         {
-                            label: 'Outstanding',
+                            label: 'Chưa thu',
                             data: revenueData.map(function (r) { return r.outstanding; }),
-                            backgroundColor: '#dc3545',
-                            borderRadius: 4,
-                            stack: 'stack'
+                            backgroundColor: 'rgba(220, 53, 69, 0.75)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            borderSkipped: false
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: 'top' } },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ' ' + ctx.dataset.label + ': ' + fmtVnd(ctx.parsed.y) + ' ₫';
+                                },
+                                footer: function(items) {
+                                    var total = items.reduce(function(s, i) { return s + i.parsed.y; }, 0);
+                                    return 'Tổng: ' + fmtVnd(total) + ' ₫';
+                                }
+                            }
+                        }
+                    },
                     scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12 } }
+                        },
                         y: {
                             beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
                             ticks: {
-                                callback: function (v) {
-                                    return (v / 1000000).toFixed(1) + 'M';
-                                }
+                                callback: function(v) { return fmtVnd(v); },
+                                font: { size: 11 }
                             }
                         }
                     }

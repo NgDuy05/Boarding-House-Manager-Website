@@ -106,7 +106,7 @@
                         <tfoot>
                         <tr class="table-light fw-bold">
                             <td colspan="4" class="text-end pe-3">TOTAL:</td>
-                            <td><span id="totalDisplay">0 &#8363;</span></td>
+                            <td><span id="totalDisplay">0 đ;</span></td>
                             <td></td>
                         </tr>
                         </tfoot>
@@ -298,7 +298,7 @@ document.getElementById('billForm').addEventListener('submit', function(e) {
 // HELPERS
 // =============================
 function fmtVnd(n) {
-    return Math.round(n).toLocaleString('vi-VN') + ' &#8363;';
+    return Math.round(n).toLocaleString('vi-VN') + 'đ;';
 }
 function escAttr(s) {
     if (!s) return '';
