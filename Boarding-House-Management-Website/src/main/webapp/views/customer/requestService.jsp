@@ -37,7 +37,7 @@
             margin-bottom: 10px;
         }
         .svc-option:hover { border-color: #7c3aed; background: #faf5ff; }
-        .svc-option input[type="radio"] { accent-color: #7c3aed; width: 18px; height: 18px; }
+        .svc-option input[type="checkbox"] { accent-color: #7c3aed; width: 18px; height: 18px; }
         .svc-option.selected { border-color: #7c3aed; background: #faf5ff; }
         .svc-icon {
             width: 40px; height: 40px; border-radius: 10px;
@@ -111,6 +111,12 @@
                         <span>Request submission failed. Please try again.</span>
                     </div>
                 </c:if>
+                <c:if test="${param.error == 'noservice'}">
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                        <span>Please select at least one service.</span>
+                    </div>
+                </c:if>
                 <c:if test="${param.success == 'requested'}">
                     <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
                         <i class="bi bi-check-circle-fill fs-5"></i>
@@ -153,17 +159,15 @@
                                 <%-- Step 1: Choose service --%>
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <span class="step-number">1</span>
-                                    <span class="fw-semibold">Select a Service <span class="text-danger">*</span></span>
+                                    <span class="fw-semibold">Select Services <span class="text-danger">*</span></span>
                                 </div>
 
                                 <div class="mb-4">
                                     <c:forEach var="svc" items="${services}">
                                         <label class="svc-option w-100" id="label_${svc.serviceId}">
-                                            <input type="radio" name="serviceId"
+                                            <input type="checkbox" name="serviceIds"
                                                    value="${svc.serviceId}"
-                                                   onchange="updateSelected(this)"
-                                                   ${svc.serviceId == preselectedId ? 'checked' : ''}
-                                                   required>
+                                                   onchange="updateSelected(this)">
                                             <div class="svc-icon">
                                                 <i class="bi bi-lightning-charge-fill"></i>
                                             </div>
@@ -272,16 +276,26 @@
         document.getElementById('usageDateInput').valueAsDate = new Date();
 
         // Highlight selected service option
-        function updateSelected(radio) {
-            document.querySelectorAll('.svc-option').forEach(function(el) {
-                el.classList.remove('selected');
-            });
-            radio.closest('.svc-option').classList.add('selected');
+        function updateSelected(cb) {
+            if (cb.checked) {
+                cb.closest('.svc-option').classList.add('selected');
+            } else {
+                cb.closest('.svc-option').classList.remove('selected');
+            }
         }
 
         // Pre-highlight on load
-        document.querySelectorAll('input[name="serviceId"]:checked').forEach(function(r) {
-            r.closest('.svc-option').classList.add('selected');
+        document.querySelectorAll('input[name="serviceIds"]:checked').forEach(function(cb) {
+            cb.closest('.svc-option').classList.add('selected');
+        });
+
+        // Form validation: ensure at least one service selected
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var checked = document.querySelectorAll('input[name="serviceIds"]:checked');
+            if (checked.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one service.');
+            }
         });
     </script>
         </main>
