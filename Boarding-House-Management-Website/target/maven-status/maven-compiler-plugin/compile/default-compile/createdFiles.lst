@@ -4,7 +4,9 @@ DALs\RoomDAO.class
 Models\Room.class
 Models\UtilityPrice.class
 Controllers\UserServlet.class
+Utils\PasswordValidator$Result.class
 Models\Amenity.class
+Utils\PasswordValidator$Strength.class
 DALs\UtilityDAO.class
 Controllers\ContractServlet.class
 Controllers\DepositServlet.class
@@ -16,6 +18,7 @@ DALs\ActivityLogDAO.class
 Filter\LoginFilter.class
 Models\Contract.class
 Utils\EmailService$1.class
+Utils\PasswordValidator.class
 Utils\EmailService.class
 Controllers\ActivityLogServlet.class
 DALs\BillDAO.class
@@ -31,6 +34,7 @@ Controllers\NotificationServlet.class
 VnPay\VNPayService.class
 Models\PriceCategory.class
 Models\RoomAmenity.class
+Controllers\ImageUploadServlet.class
 DALs\DepositDAO.class
 Controllers\AuthServlet.class
 Utils\OtpStore$OtpEntry.class
