@@ -253,29 +253,69 @@ public class RoomServlet extends HttpServlet {
         List<Room> allRooms  = roomDAO.getAllRooms();
         List<RoomCategory> categories = categoryDAO.getAllCategories();
 
-        // Get active contract info for each room
-        Map<Integer, Contract> roomContracts = new LinkedHashMap<>();
+        // 1. Lấy parameters từ form filter
+        String searchParam = request.getParameter("search");
+        String statusParam = request.getParameter("status");
+
+        // 2. Tính toán thống kê và Lọc dữ liệu
+        List<Room> filteredRooms = new java.util.ArrayList<>();
+        int availableCount = 0, occupiedCount = 0, maintenanceCount = 0;
+
         for (Room r : allRooms) {
+            // Đếm số lượng cho các thẻ thống kê (dựa trên tổng số phòng)
+            if ("available".equalsIgnoreCase(r.getStatus())) availableCount++;
+            else if ("occupied".equalsIgnoreCase(r.getStatus())) occupiedCount++;
+            else if ("maintenance".equalsIgnoreCase(r.getStatus())) maintenanceCount++;
+
+            // Kiểm tra điều kiện filter
+            boolean matchSearch = (searchParam == null || searchParam.trim().isEmpty() 
+                    || r.getRoomNumber().toLowerCase().contains(searchParam.trim().toLowerCase()));
+            boolean matchStatus = (statusParam == null || statusParam.trim().isEmpty() 
+                    || statusParam.equalsIgnoreCase(r.getStatus()));
+
+            if (matchSearch && matchStatus) {
+                filteredRooms.add(r);
+            }
+        }
+
+        // Lấy thông tin hợp đồng cho các phòng SAU KHI đã lọc (giúp tối ưu hiệu suất hơn)
+        Map<Integer, Contract> roomContracts = new LinkedHashMap<>();
+        for (Room r : filteredRooms) {
             Contract c = contractDAO.getActiveContractByRoomId(r.getRoomId());
             if (c != null) {
                 roomContracts.put(r.getRoomId(), c);
             }
         }
 
-        int totalItems = allRooms.size();
+        // 3. Phân trang dựa trên danh sách đã lọc (filteredRooms)
+        int totalItems = filteredRooms.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / PAGE_SIZE));
         int page = parsePage(request.getParameter("page"), totalPages);
         int from = (page - 1) * PAGE_SIZE;
         int to   = Math.min(from + PAGE_SIZE, totalItems);
-        List<Room> rooms = (from < totalItems) ? allRooms.subList(from, to) : Collections.emptyList();
+        List<Room> pageRooms = (from < totalItems) ? filteredRooms.subList(from, to) : Collections.emptyList();
 
-        request.setAttribute("rooms",       rooms);
-        request.setAttribute("categories",  categories);
+        // 4. Set Attributes đẩy về JSP
+        request.setAttribute("rooms", pageRooms);
+        request.setAttribute("categories", categories);
         request.setAttribute("roomContracts", roomContracts);
+
+        // Thuộc tính phân trang
         request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages",  totalPages);
-        request.setAttribute("totalItems",  totalItems);
-        request.setAttribute("pageSize",    PAGE_SIZE);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalItems", totalItems); 
+        request.setAttribute("pageSize", PAGE_SIZE);
+
+        // Thuộc tính thống kê tổng
+        request.setAttribute("totalRooms", allRooms.size());
+        request.setAttribute("availableCount", availableCount);
+        request.setAttribute("occupiedCount", occupiedCount);
+        request.setAttribute("maintenanceCount", maintenanceCount);
+
+        // Giữ lại giá trị trên form filter để hiển thị sau khi reload
+        request.setAttribute("search", searchParam != null ? searchParam.trim() : "");
+        request.setAttribute("statusFilter", statusParam != null ? statusParam.trim() : "");
+
         request.getRequestDispatcher("/views/admin/rooms/rooms.jsp")
                 .forward(request, response);
     }
