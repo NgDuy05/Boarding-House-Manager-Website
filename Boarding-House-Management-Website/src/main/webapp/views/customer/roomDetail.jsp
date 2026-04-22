@@ -1,6 +1,7 @@
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -170,18 +171,21 @@
         }
         .amenity-card:hover { border-color: #FF9005; }
         .amenity-icon-wrap {
-            width: 40px; height: 40px; flex-shrink: 0;
+            width: 48px; height: 48px; flex-shrink: 0;
             background: #fff3e0; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
         }
-        .amenity-icon-wrap img { width: 26px; height: 26px; object-fit: cover; border-radius: 5px; }
+        .amenity-icon-wrap img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; }
         .amenity-name { font-weight: 700; font-size: .88rem; color: #1f2937; }
         .amenity-desc { font-size: .78rem; color: #6b7280; margin-top: 2px; }
+        .amenity-price { font-size: .78rem; color: #FF9005; font-weight: 700; margin-top: 4px; }
         .amenity-qty {
-            margin-left: auto; flex-shrink: 0;
+            flex-shrink: 0;
             background: #fff3e0; color: #e65100;
             border-radius: 8px; padding: 3px 10px;
             font-size: .76rem; font-weight: 700;
+            align-self: center;
         }
         .empty-amenity { text-align: center; padding: 2rem; color: #9ca3af; }
         .empty-amenity i { font-size: 2.2rem; margin-bottom: .6rem; }
@@ -285,7 +289,7 @@
                     <c:choose>
                         <c:when test="${not empty room.image}">
                             <img class="view-img"
-                                 src="${pageContext.request.contextPath}/assets/images/room/${room.image}"
+                                 src="${pageContext.request.contextPath}/${room.image}"
                                  alt="Room ${room.roomNumber}"
                                  onerror="this.style.display='none';document.getElementById('img-placeholder').style.display='flex';">
                             <div id="img-placeholder" class="view-img-placeholder" style="display:none;">
@@ -409,7 +413,7 @@
             <div class="img-gallery-grid">
                 <%-- Main image shown as thumbnail --%>
                 <img class="img-thumb active"
-                     src="${pageContext.request.contextPath}/assets/images/room/${room.image}"
+                     src="${pageContext.request.contextPath}/${room.image}"
                      alt="Room ${room.roomNumber}"
                      onclick="selectThumb(this)"
                      onerror="this.style.display='none'">
@@ -534,12 +538,12 @@
                 </div>
             </div>
 
-            <%-- Right: Amenities --%>
+            <%-- Right: Facilities --%>
             <div class="col-md-7">
                 <div class="info-card">
                     <div class="section-title">
-                        <i class="bi bi-stars"></i>
-                        Room Amenities
+                        <i class="bi bi-wrench-adjustable-circle"></i>
+                        Room Facilities
                         <span class="badge ms-auto rounded-pill"
                               style="background:#fff3e0;color:#e65100;font-size:.76rem;">
                             ${amenities.size()} items
@@ -549,33 +553,67 @@
                         <c:when test="${empty amenities}">
                             <div class="empty-amenity">
                                 <i class="bi bi-inbox d-block"></i>
-                                <p class="mb-0">No amenities listed for this room yet.</p>
+                                <p class="mb-0">No facilities listed yet.</p>
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <div class="d-flex flex-column gap-3">
+                            <div class="row g-3">
                                 <c:forEach var="a" items="${amenities}">
-                                    <div class="amenity-card">
-                                        <div class="amenity-icon-wrap">
+                                <div class="col-sm-6">
+                                    <div style="background:#fafafa;border-radius:10px;border:1.5px solid #e5e7eb;overflow:hidden;transition:box-shadow .2s,border-color .2s;"
+                                         onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,.09)';this.style.borderColor='#FF9005'"
+                                         onmouseout="this.style.boxShadow='none';this.style.borderColor='#e5e7eb'">
+                                        <c:choose>
+                                            <c:when test="${not empty a.image}">
+                                                <c:choose>
+                                                    <c:when test="${fn:startsWith(a.image, 'http')}">
+                                                        <img src="${a.image}"
+                                                             alt="${a.facilityName}"
+                                                             style="width:100%;height:110px;object-fit:cover;display:block;"
+                                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                    </c:when>
+                                                    <c:when test="${fn:startsWith(a.image, '/')}">
+                                                        <img src="${pageContext.request.contextPath}${a.image}"
+                                                             alt="${a.facilityName}"
+                                                             style="width:100%;height:110px;object-fit:cover;display:block;"
+                                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <img src="${pageContext.request.contextPath}/${a.image}"
+                                                             alt="${a.facilityName}"
+                                                             style="width:100%;height:110px;object-fit:cover;display:block;"
+                                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <div style="display:none;width:100%;height:110px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);align-items:center;justify-content:center;">
+                                                    <i class="bi bi-image" style="font-size:2rem;color:#FF9005;"></i>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div style="width:100%;height:110px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);display:flex;align-items:center;justify-content:center;">
+                                                    <i class="bi bi-wrench" style="font-size:2rem;color:#FF9005;"></i>
+                                                </div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                        <div style="padding:10px 12px;">
+                                            <div style="font-weight:700;font-size:.88rem;color:#1f2937;margin-bottom:3px;">${a.facilityName}</div>
+                                            <c:if test="${not empty a.description}">
+                                                <div style="font-size:.75rem;color:#6b7280;margin-bottom:5px;line-height:1.4;">${a.description}</div>
+                                            </c:if>
                                             <c:choose>
-                                                <c:when test="${not empty a.image}">
-                                                    <img src="${pageContext.request.contextPath}/assets/images/facility/${a.image}"
-                                                         alt="${a.facilityName}"
-                                                         onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-box\' style=\'color:#FF9005;font-size:1.2rem\'></i>'">
+                                                <c:when test="${not empty a.monthlyPrice and a.monthlyPrice > 0}">
+                                                    <div style="font-size:.8rem;font-weight:700;color:#FF9005;">
+                                                        <i class="bi bi-tag-fill me-1"></i>
+                                                        <fmt:formatNumber value="${a.monthlyPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;<span style="font-weight:400;color:#9ca3af;font-size:.74rem;">/month</span>
+                                                    </div>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <i class="bi bi-box" style="color:#FF9005;font-size:1.2rem"></i>
+                                                    <div style="font-size:.76rem;color:#9ca3af;"><i class="bi bi-tag me-1"></i>Included</div>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-                                        <div class="flex-grow-1">
-                                            <div class="amenity-name">${a.facilityName}</div>
-                                            <c:if test="${not empty a.description}">
-                                                <div class="amenity-desc">${a.description}</div>
-                                            </c:if>
-                                        </div>
-                                        <div class="amenity-qty">x${a.quantity}</div>
                                     </div>
+                                </div>
                                 </c:forEach>
                             </div>
                         </c:otherwise>
@@ -584,6 +622,7 @@
             </div>
 
         </div><%-- end row --%>
+
     </div><%-- end container --%>
 
     <%-- ── Booking modal (from room-view.html #booking) ── --%>
@@ -624,7 +663,7 @@
                     <h3>AKDD House</h3>
                 </div>
                 <div class="col-lg-4 mb-2">
-                    <h5>115B, Main Street, Ha Noi, Viet Nam<br>+(84) 91 123 4567</h5>
+                    <h5>8386 ,An Binh, Ninh Kieu, Can Tho<br>+(84) 91 123 4567</h5>
                 </div>
                 <div class="col-lg-4">
                     <p class="lead mb-0">

@@ -175,8 +175,8 @@ public class UserDAO extends DBContext {
     // ================= INSERT CUSTOMER =================
     public boolean insertCustomer(User u) {
         String sql = "INSERT INTO [user] "
-                + "(userName, password, full_name, email, phone, role, image, is_deleted) "
-                + "VALUES (?, ?, ?, ?, ?, 'customer', ?, 0)";
+                + "(userName, password, full_name, email, phone, role, image, is_deleted, cccd) "
+                + "VALUES (?, ?, ?, ?, ?, 'customer', ?, 0, ?)";
         try (PreparedStatement st = connection.prepareStatement(sql)) {
             st.setString(1, u.getUsername());
             st.setString(2, md5(u.getPassword()));
@@ -184,6 +184,7 @@ public class UserDAO extends DBContext {
             st.setString(4, u.getEmail());
             st.setString(5, u.getPhone());
             st.setString(6, u.getImage() != null ? u.getImage() : "default.png");
+            st.setString(7, u.getCccd());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -238,7 +239,7 @@ public class UserDAO extends DBContext {
     // ================= UPDATE =================
     public boolean updateUserById(User u) {
         String sql = "UPDATE [user] "
-                + "SET userName = ?, full_name = ?, email = ?, phone = ?, role = ?, image = ? "
+                + "SET userName = ?, full_name = ?, email = ?, phone = ?, role = ?, image = ?, cccd = ? "
                 + (u.getPassword() != null && !u.getPassword().isEmpty()
                 ? ", password = ? "
                 : "")
@@ -253,6 +254,7 @@ public class UserDAO extends DBContext {
             st.setString(index++, u.getPhone());
             st.setString(index++, u.getRole());
             st.setString(index++, u.getImage());
+            st.setString(index++, u.getCccd());
 
             if (u.getPassword() != null && !u.getPassword().isEmpty()) {
                 st.setString(index++, md5(u.getPassword()));
