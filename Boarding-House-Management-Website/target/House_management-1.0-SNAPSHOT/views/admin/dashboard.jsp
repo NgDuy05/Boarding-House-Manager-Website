@@ -75,9 +75,9 @@
         </div>
     </div>
 
-    <!-- KPI ROW 2: Revenue summary -->
+    <!-- KPI ROW 2: Revenue + Deposit summary -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm p-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle bg-success bg-opacity-10 p-3">
@@ -92,7 +92,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm p-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle bg-danger bg-opacity-10 p-3">
@@ -107,7 +107,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm p-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle bg-danger bg-opacity-10 p-3">
@@ -116,6 +116,21 @@
                     <div>
                         <div class="text-muted small">Overdue Bills</div>
                         <div class="fw-bold fs-5 ${billStats.overdue > 0 ? 'text-danger' : ''}">${billStats.overdue}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                        <i class="bi bi-shield-check text-info fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Deposit</div>
+                        <div class="fw-bold fs-6 text-info">
+                            <fmt:formatNumber value="${depositTotal}" type="number" groupingUsed="true"/> &#8363;
+                        </div>
                     </div>
                 </div>
             </div>

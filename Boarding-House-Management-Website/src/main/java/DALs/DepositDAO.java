@@ -139,4 +139,26 @@ public class DepositDAO extends DBContext {
         try { dt.setRoomNumber(rs.getString("room_number")); } catch (SQLException ignored) {}
         return dt;
     }
+    // ==============================
+    // TOTAL DEPOSIT BALANCE (all contracts)
+    // Used by dashboard KPI card
+    // ==============================
+    public java.math.BigDecimal getTotalDeposit() {
+        String sql = "SELECT "
+                + "  SUM(CASE WHEN transaction_type = 'deposit'   THEN amount ELSE 0 END) "
+                + "- SUM(CASE WHEN transaction_type = 'refund'    THEN amount ELSE 0 END) "
+                + "- SUM(CASE WHEN transaction_type = 'deduction' THEN amount ELSE 0 END) AS total "
+                + "FROM deposit_transaction";
+        try (PreparedStatement st = connection.prepareStatement(sql);
+             ResultSet rs = st.executeQuery()) {
+            if (rs.next()) {
+                java.math.BigDecimal val = rs.getBigDecimal("total");
+                return val != null ? val : java.math.BigDecimal.ZERO;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return java.math.BigDecimal.ZERO;
+    }
+
 }

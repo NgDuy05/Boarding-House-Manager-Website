@@ -1,6 +1,7 @@
 package Controllers;
 
 import DALs.BillDAO;
+import DALs.DepositDAO;
 import DALs.ContractDAO;
 import DALs.DashboardDAO;
 import DALs.NotificationDAO;
@@ -23,6 +24,7 @@ public class DashboardServlet extends HttpServlet {
     private NotificationDAO notificationDAO;
     private ServiceDAO      serviceDAO;
     private DashboardDAO    dashDAO;
+    private DepositDAO      depositDAO;
 
     @Override
     public void init() {
@@ -31,6 +33,7 @@ public class DashboardServlet extends HttpServlet {
         notificationDAO = new NotificationDAO();
         serviceDAO      = new ServiceDAO();
         dashDAO         = new DashboardDAO();
+        depositDAO      = new DepositDAO();
     }
 
     @Override
@@ -73,6 +76,7 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("expiringContracts", dashDAO.getExpiringContracts());
         request.setAttribute("overdueBills",      dashDAO.getOverdueBills());
         request.setAttribute("pendingSvcList",    dashDAO.getPendingServiceRequests());
+        request.setAttribute("depositTotal",       depositDAO.getTotalDeposit());
 
         request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
     }
