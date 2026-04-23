@@ -159,6 +159,7 @@ public class ManageCustomerServlet extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String email    = request.getParameter("email");
         String phone    = request.getParameter("phone");
+        String cccd     = request.getParameter("cccd");
 
         if (userDAO.existsByUsername(username)) {
             request.getSession().setAttribute("customerError", "Username '" + username + "' already exists!");
@@ -172,6 +173,7 @@ public class ManageCustomerServlet extends HttpServlet {
         u.setFullName(fullName);
         u.setEmail(email);
         u.setPhone(phone);
+        u.setCccd(cccd);
         u.setRole("customer");
         u.setImage("default.png");
 
@@ -218,6 +220,7 @@ public class ManageCustomerServlet extends HttpServlet {
         u.setFullName(request.getParameter("fullName"));
         u.setEmail(request.getParameter("email"));
         u.setPhone(request.getParameter("phone"));
+        u.setCccd(request.getParameter("cccd"));
 
         String newPwd = request.getParameter("password");
         if (newPwd != null && !newPwd.trim().isEmpty()) {

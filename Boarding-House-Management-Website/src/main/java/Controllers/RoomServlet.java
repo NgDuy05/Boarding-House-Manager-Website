@@ -99,6 +99,47 @@ public class RoomServlet extends HttpServlet {
             case "edit":
                 updateRoom(request, response);
                 break;
+            case "saveFacilities":
+                saveFacilities(request, response);
+                break;
+        }
+    }
+
+    // ================= SAVE FACILITIES (AJAX JSON) =================
+    private void saveFacilities(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = request.getReader().readLine()) != null) sb.append(line);
+            String body = sb.toString();
+
+            // Parse roomId
+            int roomId = Integer.parseInt(body.replaceAll(".*\"roomId\"\\s*:\\s*(\\d+).*", "$1"));
+
+            // Soft-delete existing
+            facilityDAO.softDeleteRoomFacilities(roomId);
+
+            // Parse facilities array: [{facilityId:X,quantity:Y},...]
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("\\{\\s*\"facilityId\"\\s*:\\s*(\\d+)\\s*,\\s*\"quantity\"\\s*:\\s*(\\d+)\\s*\\}")
+                .matcher(body);
+
+            while (m.find()) {
+                int fid = Integer.parseInt(m.group(1));
+                int qty = Integer.parseInt(m.group(2));
+                if (qty > 0) {
+                    facilityDAO.upsertRoomFacility(roomId, fid, qty);
+                }
+            }
+
+            response.getWriter().write("{\"success\":true}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().write("{\"success\":false,\"error\":\"" + e.getMessage() + "\"}");
         }
     }
 
@@ -199,7 +240,7 @@ public class RoomServlet extends HttpServlet {
         }
 
         request.setAttribute("room",      room);
-        request.setAttribute("amenities", amenities);
+        request.setAttribute("amenities", facilityDAO.getAllFacilities());
         request.setAttribute("category",  category);
         request.getRequestDispatcher("/views/customer/roomDetail.jsp")
                 .forward(request, response);
@@ -212,29 +253,69 @@ public class RoomServlet extends HttpServlet {
         List<Room> allRooms  = roomDAO.getAllRooms();
         List<RoomCategory> categories = categoryDAO.getAllCategories();
 
-        // Get active contract info for each room
-        Map<Integer, Contract> roomContracts = new LinkedHashMap<>();
+        // 1. Lấy parameters từ form filter
+        String searchParam = request.getParameter("search");
+        String statusParam = request.getParameter("status");
+
+        // 2. Tính toán thống kê và Lọc dữ liệu
+        List<Room> filteredRooms = new java.util.ArrayList<>();
+        int availableCount = 0, occupiedCount = 0, maintenanceCount = 0;
+
         for (Room r : allRooms) {
+            // Đếm số lượng cho các thẻ thống kê (dựa trên tổng số phòng)
+            if ("available".equalsIgnoreCase(r.getStatus())) availableCount++;
+            else if ("occupied".equalsIgnoreCase(r.getStatus())) occupiedCount++;
+            else if ("maintenance".equalsIgnoreCase(r.getStatus())) maintenanceCount++;
+
+            // Kiểm tra điều kiện filter
+            boolean matchSearch = (searchParam == null || searchParam.trim().isEmpty() 
+                    || r.getRoomNumber().toLowerCase().contains(searchParam.trim().toLowerCase()));
+            boolean matchStatus = (statusParam == null || statusParam.trim().isEmpty() 
+                    || statusParam.equalsIgnoreCase(r.getStatus()));
+
+            if (matchSearch && matchStatus) {
+                filteredRooms.add(r);
+            }
+        }
+
+        // Lấy thông tin hợp đồng cho các phòng SAU KHI đã lọc (giúp tối ưu hiệu suất hơn)
+        Map<Integer, Contract> roomContracts = new LinkedHashMap<>();
+        for (Room r : filteredRooms) {
             Contract c = contractDAO.getActiveContractByRoomId(r.getRoomId());
             if (c != null) {
                 roomContracts.put(r.getRoomId(), c);
             }
         }
 
-        int totalItems = allRooms.size();
+        // 3. Phân trang dựa trên danh sách đã lọc (filteredRooms)
+        int totalItems = filteredRooms.size();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / PAGE_SIZE));
         int page = parsePage(request.getParameter("page"), totalPages);
         int from = (page - 1) * PAGE_SIZE;
         int to   = Math.min(from + PAGE_SIZE, totalItems);
-        List<Room> rooms = (from < totalItems) ? allRooms.subList(from, to) : Collections.emptyList();
+        List<Room> pageRooms = (from < totalItems) ? filteredRooms.subList(from, to) : Collections.emptyList();
 
-        request.setAttribute("rooms",       rooms);
-        request.setAttribute("categories",  categories);
+        // 4. Set Attributes đẩy về JSP
+        request.setAttribute("rooms", pageRooms);
+        request.setAttribute("categories", categories);
         request.setAttribute("roomContracts", roomContracts);
+
+        // Thuộc tính phân trang
         request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages",  totalPages);
-        request.setAttribute("totalItems",  totalItems);
-        request.setAttribute("pageSize",    PAGE_SIZE);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalItems", totalItems); 
+        request.setAttribute("pageSize", PAGE_SIZE);
+
+        // Thuộc tính thống kê tổng
+        request.setAttribute("totalRooms", allRooms.size());
+        request.setAttribute("availableCount", availableCount);
+        request.setAttribute("occupiedCount", occupiedCount);
+        request.setAttribute("maintenanceCount", maintenanceCount);
+
+        // Giữ lại giá trị trên form filter để hiển thị sau khi reload
+        request.setAttribute("search", searchParam != null ? searchParam.trim() : "");
+        request.setAttribute("statusFilter", statusParam != null ? statusParam.trim() : "");
+
         request.getRequestDispatcher("/views/admin/rooms/rooms.jsp")
                 .forward(request, response);
     }
@@ -281,8 +362,12 @@ public class RoomServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Room room = roomDAO.getRoomById(id);
         List<RoomCategory> categories = categoryDAO.getAllCategories();
+        List<Models.RoomAmenity> roomFacilities = facilityDAO.getAmenitiesByRoomId(id);
+        List<Models.Facility> allFacilities = facilityDAO.getAllFacilities();
         request.setAttribute("room", room);
         request.setAttribute("categories", categories);
+        request.setAttribute("roomFacilities", roomFacilities);
+        request.setAttribute("allFacilities", allFacilities);
         request.getRequestDispatcher("/views/admin/rooms/editRoom.jsp")
                 .forward(request, response);
     }
@@ -312,6 +397,23 @@ public class RoomServlet extends HttpServlet {
             try { room.setMaxOccupants(Integer.parseInt(maxOccParam.trim())); } catch (NumberFormatException ignored) {}
         }
         roomDAO.updateRoom(room);
+
+        // Save room facilities
+        facilityDAO.softDeleteRoomFacilities(id);
+        String[] facilityIds = request.getParameterValues("facilityId");
+        if (facilityIds != null) {
+            for (String fid : facilityIds) {
+                String qtyParam = request.getParameter("qty_" + fid);
+                int qty = 1;
+                if (qtyParam != null && !qtyParam.trim().isEmpty()) {
+                    try { qty = Integer.parseInt(qtyParam.trim()); } catch (NumberFormatException ignored) {}
+                }
+                if (qty > 0) {
+                    facilityDAO.upsertRoomFacility(id, Integer.parseInt(fid), qty);
+                }
+            }
+        }
+
         response.sendRedirect("room?action=list");
     }
 
@@ -333,6 +435,8 @@ public class RoomServlet extends HttpServlet {
         request.setAttribute("room", room);
         // Pass resident history for this room
         request.setAttribute("tenantHistory", contractDAO.getTenantHistoryByRoomId(id));
+        // Pass amenities (with image + price) for this room
+        request.setAttribute("roomAmenities", facilityDAO.getAmenitiesByRoomId(id));
         request.getRequestDispatcher("/views/admin/rooms/roomDetail.jsp")
                 .forward(request, response);
     }

@@ -2,44 +2,96 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Admin Sidebar — included in all admin management pages --%>
 <style>
-    .admin-sidebar {
-        min-height: calc(100vh - 56px);
-        background: #212529;
-        position: sticky;
-        top: 56px;
-        height: calc(100vh - 56px);
-        overflow-y: auto;
-    }
-    .admin-sidebar .nav-link {
-        color: #adb5bd;
-        border-radius: 6px;
-        margin-bottom: 2px;
-        padding: 0.45rem 1rem;
-        font-size: 0.875rem;
-    }
-    .admin-sidebar .nav-link:hover,
-    .admin-sidebar .nav-link.active {
-        color: #fff;
-        background-color: #343a40;
-    }
-    .admin-sidebar .nav-link i { width: 20px; }
-    .sidebar-heading {
-        color: #6c757d;
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        padding: 0.75rem 1rem 0.2rem;
-    }
-    /* Make the row containing the sidebar fill the remaining height */
-    .admin-layout-row { flex: 1; }
-    .admin-main {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        min-height: calc(100vh - 56px);
-    }
-    .admin-main > footer { margin-top: auto; }
+/* =======================
+   GLOBAL
+======================= */
+body {
+    background-color: #ffffff !important;
+    color: #333;
+}
+
+/* =======================
+   SIDEBAR
+======================= */
+.admin-sidebar {
+    min-height: calc(100vh - 56px);
+    background: #ffffff;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    border-right: 1px solid #e9ecef;
+    padding: 10px;
+}
+
+/* LINK */
+.admin-sidebar .nav-link {
+    color: #333;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+/* 🔥 HOVER CHUẨN */
+.admin-sidebar .nav-link:hover {
+    background-color: #00537A !important;
+    color: #ffffff !important;
+}
+
+/* ICON khi hover */
+.admin-sidebar .nav-link:hover i {
+    color: #ffffff !important;
+}
+
+/* ACTIVE */
+.admin-sidebar .nav-link.active {
+    background: #00537A;
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: 0 3px 8px rgba(0, 83, 122, 0.25);
+}
+
+/* ICON */
+.admin-sidebar .nav-link i {
+    width: 20px;
+}
+
+/* HEADING */
+.sidebar-heading {
+    color: #999;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.75rem 0.9rem 0.3rem;
+}
+
+/* =======================
+   CONTENT
+======================= */
+.admin-main {
+    background: #ffffff;
+}
+
+/* CARD */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* =======================
+   SCROLLBAR
+======================= */
+.admin-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
 </style>
 
 <nav class="col-md-3 col-lg-2 d-md-block admin-sidebar py-3 px-2">

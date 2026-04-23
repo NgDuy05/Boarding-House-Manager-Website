@@ -121,6 +121,18 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">CCCD / Citizen ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                <input type="text" name="cccd" class="form-control"
+                                       placeholder="12-digit citizen ID"
+                                       pattern="[0-9]{12}"
+                                       title="CCCD must be exactly 12 digits">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

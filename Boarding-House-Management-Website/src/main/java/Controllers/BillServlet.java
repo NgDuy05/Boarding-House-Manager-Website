@@ -87,20 +87,52 @@ public class BillServlet extends HttpServlet {
     }
 
     // ===============================
-    // LIST (admin, existing)
+    // LIST (admin)
+    // GET /bill?action=list&status=&search=&page=
     // ===============================
     private void listBills(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         List<Bill> all = billDAO.getAllBills();
-        applyPaginationAttrs(request, all, "bills");
+
+        // Tính stat từ toàn bộ dữ liệu (trước khi filter)
+        long paidCount   = all.stream().filter(b -> "paid".equals(b.getStatus())).count();
+        long unpaidCount = all.stream().filter(b -> "pending".equals(b.getStatus())).count();
+        request.setAttribute("paidCount",   paidCount);
+        request.setAttribute("unpaidCount", unpaidCount);
+
+        // Filter theo status và search
+        String statusFilter = request.getParameter("status");
+        String search       = request.getParameter("search");
+        boolean hasStatus   = statusFilter != null && !statusFilter.isEmpty();
+        boolean hasSearch   = search       != null && !search.trim().isEmpty();
+        String  searchLower = hasSearch ? search.trim().toLowerCase() : "";
+
+        List<Bill> filtered = new ArrayList<>();
+        for (Bill b : all) {
+            if (hasStatus && !statusFilter.equals(b.getStatus())) continue;
+            if (hasSearch) {
+                String contractId = String.valueOf(b.getContractId());
+                String period     = b.getPeriod()  != null ? b.getPeriod().toString().toLowerCase()  : "";
+                String dueDate    = b.getDueDate()  != null ? b.getDueDate().toString().toLowerCase() : "";
+                if (!contractId.contains(searchLower)
+                        && !period.contains(searchLower)
+                        && !dueDate.contains(searchLower)) continue;
+            }
+            filtered.add(b);
+        }
+
+        // Trả filter params về view để giữ state trên form
+        request.setAttribute("statusFilter", statusFilter);
+        request.setAttribute("search",       search);
+
+        applyPaginationAttrs(request, filtered, "bills");
         request.getRequestDispatcher("/views/admin/bills/bills.jsp").forward(request, response);
     }
 
     // ===============================
     // OWNER BILL LIST
     // GET /bill?action=ownerList
-    // Returns: bill_id, room_number, period, total_amount, status, due_date
     // ===============================
     private void ownerBillList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -113,7 +145,6 @@ public class BillServlet extends HttpServlet {
     // ===============================
     // BILL PAYMENT STATUS
     // GET /bill?action=status
-    // Reuses getBillsWithRoomInfo; filter by optional ?status= param
     // ===============================
     private void billStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -139,7 +170,6 @@ public class BillServlet extends HttpServlet {
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Pass contracts (with room info) and price categories for dropdowns
         request.setAttribute("contracts",  contractDAO.getActiveForBilling());
         request.setAttribute("categories", priceDAO.getAllPriceCategories());
         request.getRequestDispatcher("/views/admin/bills/createBill.jsp").forward(request, response);
@@ -148,26 +178,21 @@ public class BillServlet extends HttpServlet {
     // ===============================
     // CREATE BILL WITH ITEMS
     // POST /bill?action=create
-    // Step 1: build Bill; Step 2: build BillItems; Step 3: calc total
     // ===============================
     private void createBillWithItems(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         try {
             int       contractId = Integer.parseInt(request.getParameter("contractId"));
-            // Parse period: supports both YYYY-MM (type=month) and YYYY-MM-DD (type=date)
-            // Always normalizes to 1st of month per DB constraint CHK_bill_period
             LocalDate period     = parseMonthParam(request.getParameter("period"));
             LocalDate dueDate    = LocalDate.parse(request.getParameter("dueDate"));
 
-            // Guard: prevent duplicate bill for same contract + period
             if (billDAO.existsByContractAndPeriod(contractId, period)) {
                 response.sendRedirect("bill?action=create&error=duplicate&contractId=" + contractId
                         + "&period=" + period);
                 return;
             }
 
-            // Collect repeating item arrays from form
             String[] descs       = request.getParameterValues("itemDesc[]");
             String[] quantities  = request.getParameterValues("itemQty[]");
             String[] prices      = request.getParameterValues("itemPrice[]");
@@ -189,7 +214,6 @@ public class BillServlet extends HttpServlet {
                     item.setDescription(desc);
                     item.setQuantity(qty);
                     item.setUnitPrice(price);
-                    // Source type / id (from redesigned form hidden inputs)
                     if (sourceTypes != null && i < sourceTypes.length) {
                         item.setSourceType(sourceTypes[i]);
                     }
@@ -240,10 +264,12 @@ public class BillServlet extends HttpServlet {
 
         int       billId     = Integer.parseInt(request.getParameter("billId"));
         int       contractId = Integer.parseInt(request.getParameter("contractId"));
-        // Parse period: supports both YYYY-MM (type=month) and YYYY-MM-DD (type=date)
         LocalDate period     = parseMonthParam(request.getParameter("period"));
         LocalDate dueDate    = LocalDate.parse(request.getParameter("dueDate"));
         String    status     = request.getParameter("status");
+
+        // Giữ lại total_amount từ DB — không cho phép form edit ghi đè
+        Bill existing = billDAO.getBillById(billId);
 
         Bill bill = new Bill();
         bill.setBillId(billId);
@@ -251,6 +277,7 @@ public class BillServlet extends HttpServlet {
         bill.setPeriod(period);
         bill.setDueDate(dueDate);
         bill.setStatus(status);
+        bill.setTotalAmount(existing != null ? existing.getTotalAmount() : BigDecimal.ZERO);
         billDAO.updateBill(bill);
 
         response.sendRedirect("bill?action=list");
@@ -267,7 +294,6 @@ public class BillServlet extends HttpServlet {
         String status = request.getParameter("status");
         billDAO.updateStatus(billId, status);
 
-        // Redirect back to referrer or status page
         String ref = request.getHeader("Referer");
         response.sendRedirect(ref != null ? ref : "bill?action=status");
     }
@@ -282,12 +308,10 @@ public class BillServlet extends HttpServlet {
         Bill bill   = billDAO.getBillById(billId);
 
         request.setAttribute("bill", bill);
-        // Load bill items for detail view
         if (bill != null) {
             request.setAttribute("billItems", billDAO.getBillItemsByBillId(billId));
         }
 
-        // Route to customer or admin detail view based on role
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
         String view = (user != null && "customer".equals(user.getRole()))
@@ -342,7 +366,7 @@ public class BillServlet extends HttpServlet {
         int toIndex   = Math.min(fromIndex + PAGE_SIZE, totalItems);
         List<T> pageItems = (fromIndex < totalItems) ? all.subList(fromIndex, toIndex) : java.util.Collections.emptyList();
 
-        request.setAttribute(listAttr,    pageItems);
+        request.setAttribute(listAttr,      pageItems);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages",  totalPages);
         request.setAttribute("totalItems",  totalItems);
@@ -350,20 +374,18 @@ public class BillServlet extends HttpServlet {
     }
 
     /**
-     * Parse period param from either:
+     * Parse period param từ:
      *   - "YYYY-MM"    (HTML input type=month)
      *   - "YYYY-MM-DD" (HTML input type=date — legacy)
-     * Always returns the 1st day of the month to satisfy CHK_bill_period constraint.
+     * Luôn trả về ngày 1 của tháng để thỏa mãn CHK_bill_period.
      */
     private LocalDate parseMonthParam(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("period parameter is required");
         }
-        // YYYY-MM format from <input type="month">
         if (value.length() == 7) {
             return LocalDate.parse(value + "-01");
         }
-        // YYYY-MM-DD format — normalize to 1st regardless of day entered
         return LocalDate.parse(value).withDayOfMonth(1);
     }
 }

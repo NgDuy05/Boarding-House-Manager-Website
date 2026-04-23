@@ -109,6 +109,10 @@
                             <span class="small">${not empty customer.phone ? customer.phone : '—'}</span>
                         </div>
                         <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted small">CCCD / Citizen ID</span>
+                            <span class="small">${not empty customer.cccd ? customer.cccd : '—'}</span>
+                        </div>
+                        <div class="info-row d-flex justify-content-between">
                             <span class="text-muted small">Status</span>
                             <c:choose>
                                 <c:when test="${not customer.isDeleted}">
