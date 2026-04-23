@@ -48,6 +48,13 @@ body {
     color: #ffffff !important;
 }
 
+/* Nút Logout riêng biệt khi hover */
+.customer-sidebar .nav-link.text-danger:hover {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
+}
+
 /* ICON khi hover */
 .customer-sidebar .nav-link:hover i {
     color: #ffffff !important;
