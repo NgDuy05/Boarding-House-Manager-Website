@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; }
+        body { background-color: #ffffff !important; }
         .profile-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 16px;

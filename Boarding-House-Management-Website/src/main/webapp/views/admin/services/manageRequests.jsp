@@ -219,7 +219,7 @@
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-primary"
                                                         title="Update Status"
-                                                        onclick="openStatusModal(${req.usageId}, '${req.status}', '${statusFilter}')"
+                                                        onclick="openStatusModal(${req.usageId}, '${req.status}', '${statusFilter}', '${req.quantity}', '${req.unit}')"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#updateStatusModal">
                                                     <i class="bi bi-pencil-square"></i>
@@ -269,14 +269,29 @@
 
                     <div class="modal-body pt-3">
                         <p class="text-muted small mb-3">
-                            Select the new status for request <strong>#<span id="modalUsageIdDisplay"></span></strong>.
+                            Update request <strong>#<span id="modalUsageIdDisplay"></span></strong>.
                         </p>
-                        <label class="form-label fw-semibold">New Status</label>
-                        <select name="status" id="modalStatus" class="form-select">
-                            <option value="pending">⏳ Pending</option>
-                            <option value="approved">✅ Approved</option>
-                            <option value="rejected">❌ Rejected</option>
-                        </select>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">New Status</label>
+                            <select name="status" id="modalStatus" class="form-select">
+                                <option value="pending">⏳ Pending</option>
+                                <option value="approved">✅ Approved</option>
+                                <option value="rejected">❌ Rejected</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-2" id="quantityGroup">
+                            <label class="form-label fw-semibold">
+                                Actual Quantity
+                                <span class="text-muted fw-normal" id="modalUnitLabel"></span>
+                            </label>
+                            <input type="number" name="quantity" id="modalQuantity"
+                                   class="form-control" min="0.01" step="0.01">
+                            <div class="form-text">
+                                Nhập số lượng thực tế (kg, lần...). Để trống = giữ nguyên số lượng cũ.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-footer border-top-0 pt-0">
@@ -291,11 +306,13 @@
     </div>
 
     <script>
-        function openStatusModal(usageId, currentStatus, statusFilter) {
-            document.getElementById('modalUsageId').value        = usageId;
+        function openStatusModal(usageId, currentStatus, statusFilter, currentQty, unit) {
+            document.getElementById('modalUsageId').value              = usageId;
             document.getElementById('modalUsageIdDisplay').textContent = usageId;
-            document.getElementById('modalStatus').value         = currentStatus;
-            document.getElementById('modalStatusFilter').value   = statusFilter || '';
+            document.getElementById('modalStatus').value               = currentStatus;
+            document.getElementById('modalStatusFilter').value         = statusFilter || '';
+            document.getElementById('modalQuantity').value             = currentQty || '';
+            document.getElementById('modalUnitLabel').textContent      = unit ? '(' + unit + ')' : '';
         }
     </script>
 

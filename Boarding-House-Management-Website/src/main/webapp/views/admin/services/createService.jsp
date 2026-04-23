@@ -23,39 +23,46 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
+                    <c:if test="${not empty errorMsg}">
+                        <div class="alert alert-danger">${errorMsg}</div>
+                    </c:if>
                     <form method="post" action="${pageContext.request.contextPath}/services">
                         <input type="hidden" name="action" value="insert">
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Service Name <span class="text-danger">*</span></label>
                             <input type="text" name="serviceName" class="form-control"
-                                   placeholder="e.g. Wifi Internet" required>
+                                   placeholder="e.g. Bình nước, Dọn phòng..." required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Price Category <span class="text-danger">*</span></label>
-                            <select name="categoryId" class="form-select" required>
-                                <option value="">-- Select Category --</option>
-                                <c:forEach var="cat" items="${priceCategories}">
-                                    <option value="${cat.categoryId}">
-                                        ${cat.categoryCode} (${cat.unit})
-                                    </option>
-                                </c:forEach>
-                            </select>
-                            <div class="form-text">Link to the pricing category for billing purposes.</div>
+                            <label class="form-label fw-semibold">Unit <span class="text-danger">*</span></label>
+                            <input type="text" name="unit" class="form-control"
+                                   placeholder="e.g. lần, tháng, chai..." required>
+                            <div class="form-text">Đơn vị tính của dịch vụ (dùng cho hóa đơn).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Price (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="price" class="form-control"
+                                       placeholder="e.g. 10000" min="0" step="1000" required>
+                                <span class="input-group-text">₫</span>
+                            </div>
+                            <div class="form-text">Giá mặc định mỗi đơn vị khi tạo hóa đơn.</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea name="description" class="form-control" rows="3"
-                                      placeholder="Short description of the service..."></textarea>
+                                      placeholder="Mô tả ngắn về dịch vụ..."></textarea>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Image filename</label>
                             <input type="text" name="image" class="form-control"
                                    placeholder="service.jpg" value="service.jpg">
-                            <div class="form-text">Leave default or enter a filename from <code>assets/images/service/</code>.</div>
+                            <div class="form-text">Để mặc định hoặc nhập tên file từ <code>assets/images/service/</code>.</div>
                         </div>
 
                         <div class="d-flex gap-2">

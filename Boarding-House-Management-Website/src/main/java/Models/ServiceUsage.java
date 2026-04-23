@@ -26,6 +26,7 @@ public class ServiceUsage {
 
     // Display fields (populated by join queries)
     private String serviceName;
+    private String unit;
     private String roomNumber;
     private String requesterName;
     private BigDecimal unitPrice;
@@ -146,4 +147,6 @@ public class ServiceUsage {
     public void setUserId(Integer userId) {
         this.userId = userId;
     }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
 }

@@ -29,7 +29,7 @@
 }
 
 .footer-link:hover {
-    color: #1860C3;
+    color: #00537A;
 }
 
 /* divider */

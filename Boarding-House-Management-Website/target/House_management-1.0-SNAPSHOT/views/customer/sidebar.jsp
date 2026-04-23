@@ -42,7 +42,7 @@ body {
     transition: all 0.2s ease;
 }
 
-/* 🔥 HOVER CHUẨN */
+/* HOVER */
 .customer-sidebar .nav-link:hover {
     background-color: #00537A !important;
     color: #ffffff !important;
@@ -50,7 +50,7 @@ body {
 
 /* Nút Logout riêng biệt khi hover */
 .customer-sidebar .nav-link.text-danger:hover {
-    background-color: #dc3545 !important; /* Nền đỏ */
+    background-color: #dc3545 !important;
     color: #ffffff !important;
     box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
 }
@@ -80,6 +80,20 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 0.75rem 0.9rem 0.3rem;
+}
+
+/* =======================
+   CONTENT
+======================= */
+.customer-main {
+    background: #ffffff;
+}
+
+/* CARD */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
 /* =======================
