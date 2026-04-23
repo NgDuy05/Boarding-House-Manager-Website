@@ -10,37 +10,92 @@
 <%-- Customer sidebar — only shown for customer role --%>
 <c:if test="${sessionScope.user.role == 'customer' or empty sessionScope.user}">
 <style>
-    .customer-sidebar {
-        min-height: calc(100vh - 56px);
-        background: #1e293b;
-        position: sticky;
-        top: 56px;
-        height: calc(100vh - 56px);
-        overflow-y: auto;
-    }
-    .customer-sidebar .nav-link {
-        color: #94a3b8;
-        border-radius: 6px;
-        margin-bottom: 2px;
-        padding: 0.45rem 1rem;
-        font-size: 0.875rem;
-    }
-    .customer-sidebar .nav-link:hover,
-    .customer-sidebar .nav-link.active {
-        color: #fff;
-        background-color: #334155;
-    }
-    .customer-sidebar .nav-link i { width: 20px; }
-    .sidebar-heading {
-        color: #64748b;
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        padding: 0.75rem 1rem 0.2rem;
-    }
+/* =======================
+   GLOBAL
+======================= */
+body {
+    background-color: #ffffff !important;
+    color: #333;
+}
+
+/* =======================
+   SIDEBAR
+======================= */
+.customer-sidebar {
+    min-height: calc(100vh - 56px);
+    background: #ffffff;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    border-right: 1px solid #e9ecef;
+    padding: 10px;
+}
+
+/* LINK */
+.customer-sidebar .nav-link {
+    color: #333;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+/* 🔥 HOVER CHUẨN */
+.customer-sidebar .nav-link:hover {
+    background-color: #00537A !important;
+    color: #ffffff !important;
+}
+
+/* Nút Logout riêng biệt khi hover */
+.customer-sidebar .nav-link.text-danger:hover {
+    background-color: #dc3545 !important; /* Nền đỏ */
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
+}
+
+/* ICON khi hover */
+.customer-sidebar .nav-link:hover i {
+    color: #ffffff !important;
+}
+
+/* ACTIVE */
+.customer-sidebar .nav-link.active {
+    background: #00537A;
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: 0 3px 8px rgba(0, 83, 122, 0.25);
+}
+
+/* ICON */
+.customer-sidebar .nav-link i {
+    width: 20px;
+}
+
+/* HEADING */
+.sidebar-heading {
+    color: #999;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.75rem 0.9rem 0.3rem;
+}
+
+/* =======================
+   SCROLLBAR
+======================= */
+.customer-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.customer-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
 </style>
 
-<nav class="col-md-2 d-md-block customer-sidebar py-3 px-2">
+<nav class="col-md-3 col-lg-2 d-md-block customer-sidebar py-3 px-2">
 
     <div class="sidebar-heading">My Account</div>
     <ul class="nav flex-column">

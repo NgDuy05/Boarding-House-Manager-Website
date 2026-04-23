@@ -42,10 +42,34 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Image URL</label>
-                    <input type="text" name="image" class="form-control"
-                           placeholder="assets/images/room/…">
-                </div>
+                        <label class="form-label fw-semibold">Room Image</label>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="position-relative">
+                                <div id="roomImagePreview" class="rounded overflow-hidden bg-light d-flex align-items-center justify-content-center"
+                                     style="width:160px;height:120px;border:2px dashed #ccc;cursor:pointer;"
+                                     onclick="document.getElementById('roomImageInput').click()">
+                                    <c:choose>
+                                        <c:when test="${not empty room.image}">
+                                            <img src="${pageContext.request.contextPath}/${room.image}"
+                                                 style="width:100%;height:100%;object-fit:cover;"
+                                                 id="roomImgTag" alt="Room image">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="bi bi-image text-muted" style="font-size:32px;"></i>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                                <input type="file" id="roomImageInput" accept="image/*" style="display:none"
+                                       onchange="handleRoomImageUpload(this)">
+                                <input type="hidden" name="image" id="roomImagePath" value="${room.image}">
+                            </div>
+                            <div>
+                                <div class="small text-muted mb-1">Click to upload room image</div>
+                                <div class="small text-muted">JPG, PNG - Max 5MB</div>
+                                <div class="small text-muted mt-1">Current: ${not empty room.image ? room.image : 'None'}</div>
+                            </div>
+                        </div>
+                    </div>
 
                 <div class="row mb-4">
                     <div class="col-md-6">
