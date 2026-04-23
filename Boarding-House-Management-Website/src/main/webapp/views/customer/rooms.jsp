@@ -189,29 +189,7 @@
         <main class="col p-0">
 
     <%-- Search bar (from rooms.html) --%>
-    <div class="search-wrap">
-        <div class="search-inner">
-            <form action="${pageContext.request.contextPath}/room" method="get">
-                <input type="hidden" name="action" value="publicList">
-                <div class="row align-items-end g-2 justify-content-center">
-                    <div class="col-auto">
-                        <label class="form-label fw-bold mb-1" style="font-size:.85rem;color:#555">Check In:</label>
-                        <input type="date" name="checkIn" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-auto">
-                        <label class="form-label fw-bold mb-1" style="font-size:.85rem;color:#555">Check Out:</label>
-                        <input type="date" name="checkOut" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-warning btn-sm fw-bold"
-                                style="color:#fff; padding: 6px 18px;">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+    
 
     <div class="container pb-4" style="padding-top: 20px;">
 
@@ -314,31 +292,41 @@
                                                 <c:choose>
                                                     <c:when test="${not empty room.image}">
                                                         <img class="card-img-top"
-                                                             src="${pageContext.request.contextPath}/assets/images/room/${room.image}"
+                                                             src="${pageContext.request.contextPath}/${room.image}"
                                                              alt="Room ${room.roomNumber}"
-                                                             onerror="this.src='https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=75';">
+                                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                                        <div class="room-placeholder" style="display:none">
+                                                            <i class="bi bi-house-door"></i>
+                                                            <span class="small">No Image</span>
+                                                        </div>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <%-- Pick one of 6 boarding-house photos based on roomId --%>
-                                                        <c:set var="imgIdx" value="${room.roomId % 6}" />
+                                                        <%-- Pick one of 8 local boarding-house photos based on roomId --%>
+                                                        <c:set var="imgIdx" value="${room.roomId % 8}" />
                                                         <c:choose>
                                                             <c:when test="${imgIdx == 0}">
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room1.jpg" alt="Room ${room.roomNumber}">
                                                             </c:when>
                                                             <c:when test="${imgIdx == 1}">
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room2.jpg" alt="Room ${room.roomNumber}">
                                                             </c:when>
                                                             <c:when test="${imgIdx == 2}">
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room3.jpg" alt="Room ${room.roomNumber}">
                                                             </c:when>
                                                             <c:when test="${imgIdx == 3}">
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room4.jpg" alt="Room ${room.roomNumber}">
                                                             </c:when>
                                                             <c:when test="${imgIdx == 4}">
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room5.jpg" alt="Room ${room.roomNumber}">
+                                                            </c:when>
+                                                            <c:when test="${imgIdx == 5}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room6.jpg" alt="Room ${room.roomNumber}">
+                                                            </c:when>
+                                                            <c:when test="${imgIdx == 6}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room7.jpg" alt="Room ${room.roomNumber}">
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <img class="card-img-top" src="https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=400&q=75" alt="Room ${room.roomNumber}">
+                                                                <img class="card-img-top" src="${pageContext.request.contextPath}/assets/images/room/room8.jpg" alt="Room ${room.roomNumber}">
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </c:otherwise>
@@ -415,7 +403,7 @@
                     <h3>AKDD House</h3>
                 </div>
                 <div class="col-lg-4 mb-2">
-                    <h5>115B, Main Street, Ha Noi, Viet Nam<br>+(84) 91 123 4567</h5>
+                    <h5>8386, An Binh, Ninh Kieu, Can Tho<br>+(84) 91 123 4567</h5>
                 </div>
                 <div class="col-lg-4">
                     <p class="lead mb-0">

@@ -747,12 +747,12 @@
                 <div style="position:relative; padding: 2rem 2.5rem;">
                     <div class="hero-card-main">
                         <div class="room-preview-img"
-                             style="background-image: url('https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80');">
+                             style="background-image: url('https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg');">
                             <span class="room-preview-badge">Available Now</span>
                         </div>
                         <div class="room-preview-info d-flex justify-content-between align-items-end mt-3">
                             <div>
-                                <h4>Standard Room 101</h4>
+                                <h4>Room 101</h4>
                                 <p><i class="bi bi-geo-alt-fill me-1"></i>AKDD House, Floor 1</p>
                             </div>
                             <div class="text-end">
@@ -892,39 +892,16 @@
             <div class="col-md-6 col-xl-3 reveal reveal-delay-1">
                 <div class="room-card">
                     <div class="room-card-img"
-                         style="background-image: url('https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=500&q=80');">
+                         style="background-image: url('https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg');">
                         <span class="room-status-badge badge-available">Available</span>
                     </div>
                     <div class="room-card-body">
-                        <span class="room-category-tag">Economy</span>
-                        <h5>Standard Room</h5>
+                        <span class="room-category-tag"> For Rent</span>
+                        <h5></h5>
                         <div class="room-meta">
                             <i class="bi bi-aspect-ratio"></i> 20m²
                             <span class="mx-1">·</span>
                             <i class="bi bi-person"></i> 1 Person
-                        </div>
-                    </div>
-                    <div class="room-card-footer">
-                        <div class="room-price-tag">1,800,000 <small>VND/mo</small></div>
-                        <a href="${pageContext.request.contextPath}/room?action=publicList&status=available"
-                           class="btn-view-room">View <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            <!-- Room card 2 -->
-            <div class="col-md-6 col-xl-3 reveal reveal-delay-2">
-                <div class="room-card">
-                    <div class="room-card-img variant-2"
-                         style="background-image: url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80');">
-                        <span class="room-status-badge badge-available">Available</span>
-                    </div>
-                    <div class="room-card-body">
-                        <span class="room-category-tag">Business</span>
-                        <h5>Deluxe Room</h5>
-                        <div class="room-meta">
-                            <i class="bi bi-aspect-ratio"></i> 30m²
-                            <span class="mx-1">·</span>
-                            <i class="bi bi-people"></i> 2 Persons
                         </div>
                     </div>
                     <div class="room-card-footer">
@@ -934,24 +911,47 @@
                     </div>
                 </div>
             </div>
+            <!-- Room card 2 -->
+            <div class="col-md-6 col-xl-3 reveal reveal-delay-2">
+                <div class="room-card">
+                    <div class="room-card-img variant-2"
+                         style="background-image: url('https://file.hstatic.net/200000295856/file/thiet-ke-nha-tro-5x20m-theo_doi-tuong-thue-tro_66f0635819cc4771a9bc10010b1cfc90_grande.jpg');">
+                        <span class="room-status-badge badge-available">Available</span>
+                    </div>
+                    <div class="room-card-body">
+                        <span class="room-category-tag">For Rent</span>
+                        <h5></h5>
+                        <div class="room-meta">
+                            <i class="bi bi-aspect-ratio"></i> 25m²
+                            <span class="mx-1">·</span>
+                            <i class="bi bi-people"></i> 2 Persons
+                        </div>
+                    </div>
+                    <div class="room-card-footer">
+                        <div class="room-price-tag">3,000,000 <small>VND/mo</small></div>
+                        <a href="${pageContext.request.contextPath}/room?action=publicList&status=available"
+                           class="btn-view-room">View <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
             <!-- Room card 3 -->
             <div class="col-md-6 col-xl-3 reveal reveal-delay-3">
                 <div class="room-card">
                     <div class="room-card-img variant-3"
-                         style="background-image: url('https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500&q=80');">
-                        <span class="room-status-badge badge-occupied">Occupied</span>
+                         style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6ty5O33wkTG0nLKZHjQZv2ZEtA_xIcoEZLg&s');">
+                       <span class="room-status-badge badge-available">Available</span>
                     </div>
                     <div class="room-card-body">
-                        <span class="room-category-tag">Family</span>
-                        <h5>Family Suite</h5>
+                        <span class="room-category-tag">For Rent</span>
+                        <h5></h5>
                         <div class="room-meta">
-                            <i class="bi bi-aspect-ratio"></i> 45m²
+                            <i class="bi bi-aspect-ratio"></i> 30m²
                             <span class="mx-1">·</span>
-                            <i class="bi bi-people-fill"></i> 4 Persons
+                            <i class="bi bi-people-fill"></i> 2 Persons
                         </div>
                     </div>
                     <div class="room-card-footer">
-                        <div class="room-price-tag">3,800,000 <small>VND/mo</small></div>
+                        <div class="room-price-tag">3,500,000 <small>VND/mo</small></div>
                         <a href="${pageContext.request.contextPath}/room?action=publicList"
                            class="btn-view-room">View <i class="bi bi-arrow-right"></i></a>
                     </div>
@@ -961,20 +961,42 @@
             <div class="col-md-6 col-xl-3 reveal">
                 <div class="room-card">
                     <div class="room-card-img variant-4"
-                         style="background-image: url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&q=80');">
+                         style="background-image: url('https://xaychungcumini.com/wp-content/uploads/2023/11/thiet-ke-phong-tro-15m2-co-gac-lung-4.jpg');">
                         <span class="room-status-badge badge-available">Available</span>
                     </div>
                     <div class="room-card-body">
-                        <span class="room-category-tag">Royal</span>
-                        <h5>Premium Suite</h5>
+                        <span class="room-category-tag">For Rent</span>
+                        <h5></h5>
                         <div class="room-meta">
-                            <i class="bi bi-aspect-ratio"></i> 60m²
+                            <i class="bi bi-aspect-ratio"></i> 40m²
                             <span class="mx-1">·</span>
-                            <i class="bi bi-people-fill"></i> 2 Persons
+                            <i class="bi bi-people-fill"></i> 3 Persons
                         </div>
                     </div>
                     <div class="room-card-footer">
-                        <div class="room-price-tag">5,500,000 <small>VND/mo</small></div>
+                        <div class="room-price-tag">4,500,000 <small>VND/mo</small></div>
+                        <a href="${pageContext.request.contextPath}/room?action=publicList&status=available"
+                           class="btn-view-room">View <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+                           <div class="col-md-6 col-xl-3 reveal">
+                <div class="room-card">
+                    <div class="room-card-img variant-4"
+                         style="background-image: url('https://file4.batdongsan.com.vn/resize/745x510/2025/09/24/20250924195053-07ad_wm.jpg');">
+                        <span class="room-status-badge badge-available">Available</span>
+                    </div>
+                    <div class="room-card-body">
+                        <span class="room-category-tag">For Rent</span>
+                        <h5></h5>
+                        <div class="room-meta">
+                            <i class="bi bi-aspect-ratio"></i> 35m²
+                            <span class="mx-1">·</span>
+                            <i class="bi bi-people-fill"></i> 3 Persons
+                        </div>
+                    </div>
+                    <div class="room-card-footer">
+                        <div class="room-price-tag">6,0000,000 <small>VND/mo</small></div>
                         <a href="${pageContext.request.contextPath}/room?action=publicList&status=available"
                            class="btn-view-room">View <i class="bi bi-arrow-right"></i></a>
                     </div>

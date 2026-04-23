@@ -152,7 +152,17 @@
                         </c:choose>
                     </div>
                 </div>
-
+  <div class="info-row">
+                    <div class="info-label"><i class="bi bi-person-vcard-fill me-2"></i>CCCD</div>
+                    <div class="info-value">
+                        <c:choose>
+                            <c:when test="${not empty user.cccd}">
+                                <a href="tel:${user.cccd}" class="text-decoration-none">${user.cccd}</a>
+                            </c:when>
+                            <c:otherwise><span class="text-muted">Not set</span></c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
             </div>
         </div>
 
