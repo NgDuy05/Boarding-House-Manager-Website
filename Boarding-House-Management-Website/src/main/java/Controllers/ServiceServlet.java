@@ -7,6 +7,7 @@ import Models.Service;
 import Models.ServiceUsage;
 import Models.User;
 
+import Models.PriceHistory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
@@ -136,15 +137,20 @@ public class ServiceServlet extends HttpServlet {
     }
 
     // ================= CUSTOMER: PUBLIC SERVICE LIST =================
-    private void showPublicList(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        List<Service> list = serviceDAO.getAllServices();
-        request.setAttribute("services", list);
-        request.getRequestDispatcher("/views/customer/services.jsp")
-                .forward(request, response);
-    }
-
+//    private void showPublicList(HttpServletRequest request, HttpServletResponse response)
+//            throws ServletException, IOException {
+//
+//        List<Service> list = serviceDAO.getAllServices();
+//        request.setAttribute("services", list);
+//        request.getRequestDispatcher("/views/customer/services.jsp")
+//                .forward(request, response);
+//    }
+// ================= CUSTOMER: PUBLIC SERVICE LIST =================
+private void showPublicList(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    // Bỏ màn hình list, chuyển thẳng sang request form
+    response.sendRedirect(request.getContextPath() + "/services?action=requestForm");
+}
     // ================= CUSTOMER: MY SERVICE HISTORY =================
     private void showMyHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -310,19 +316,43 @@ public class ServiceServlet extends HttpServlet {
     }
 
     // ================= ADMIN: UPDATE REQUEST STATUS (POST) =================
-    private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response)
+//    private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response)
+//            throws IOException {
+//
+//        // --- ROLE CHECK (comment out to disable) ---
+//        // User user = (User) request.getSession().getAttribute("user");
+//        // if (user == null || (!user.getRole().equals("admin") && !user.getRole().equals("staff"))) {
+//        //     response.sendRedirect(request.getContextPath() + "/auth?action=login");
+//        //     return;
+//        // }
+//
+//        int    usageId    = Integer.parseInt(request.getParameter("id"));
+//        String newStatus  = request.getParameter("status");
+//        String filter     = request.getParameter("statusFilter");
+//
+//        serviceDAO.updateRequestStatus(usageId, newStatus);
+//
+//        String redirect = request.getContextPath() + "/services?action=manageRequests";
+//        if (filter != null && !filter.isEmpty()) {
+//            redirect += "&status=" + filter;
+//        }
+//        response.sendRedirect(redirect);
+//    }
+      private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        // --- ROLE CHECK (comment out to disable) ---
-        // User user = (User) request.getSession().getAttribute("user");
-        // if (user == null || (!user.getRole().equals("admin") && !user.getRole().equals("staff"))) {
-        //     response.sendRedirect(request.getContextPath() + "/auth?action=login");
-        //     return;
-        // }
+        int    usageId   = Integer.parseInt(request.getParameter("id"));
+        String newStatus = request.getParameter("status");
+        String filter    = request.getParameter("statusFilter");
+        String qtyStr    = request.getParameter("quantity");
 
-        int    usageId    = Integer.parseInt(request.getParameter("id"));
-        String newStatus  = request.getParameter("status");
-        String filter     = request.getParameter("statusFilter");
+        // Cập nhật quantity thực tế nếu admin có nhập
+        if (qtyStr != null && !qtyStr.isBlank()) {
+            try {
+                java.math.BigDecimal qty = new java.math.BigDecimal(qtyStr);
+                serviceDAO.updateRequestQuantity(usageId, qty);
+            } catch (NumberFormatException ignored) {}
+        }
 
         serviceDAO.updateRequestStatus(usageId, newStatus);
 
@@ -403,25 +433,86 @@ public class ServiceServlet extends HttpServlet {
     }
 
     // ================= ADMIN: INSERT =================
-    private void insertService(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+//    private void insertService(HttpServletRequest request, HttpServletResponse response)
+//            throws IOException {
+//
+//        String name        = request.getParameter("serviceName");
+//        int    categoryId  = Integer.parseInt(request.getParameter("categoryId"));
+//        String description = request.getParameter("description");
+//        String image       = request.getParameter("image");
+//        if (image == null || image.isBlank()) image = "service.jpg";
+//
+//        Service s = new Service();
+//        s.setServiceName(name);
+//        s.setCategoryId(categoryId);
+//        s.setDescription(description);
+//        s.setImage(image);
+//
+//        serviceDAO.insertService(s);
+//        response.sendRedirect(request.getContextPath() + "/services?action=adminList");
+//    }
+       private void insertService(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         String name        = request.getParameter("serviceName");
-        int    categoryId  = Integer.parseInt(request.getParameter("categoryId"));
+        String unit        = request.getParameter("unit");
+        String priceStr    = request.getParameter("price");
         String description = request.getParameter("description");
         String image       = request.getParameter("image");
         if (image == null || image.isBlank()) image = "service.jpg";
 
-        Service s = new Service();
-        s.setServiceName(name);
-        s.setCategoryId(categoryId);
-        s.setDescription(description);
-        s.setImage(image);
+        try {
+            java.math.BigDecimal price = new java.math.BigDecimal(priceStr);
 
-        serviceDAO.insertService(s);
-        response.sendRedirect(request.getContextPath() + "/services?action=adminList");
+            // 1. Tạo price_category mới với type='service'
+            PriceCategory cat = new PriceCategory();
+            // category_code = tên viết hoa, bỏ dấu cách, thêm prefix SERVICE_
+            String code = "SERVICE_" + name.toUpperCase()
+                    .replaceAll("[^A-Z0-9]", "_")
+                    .replaceAll("_+", "_")
+                    + "_" + System.currentTimeMillis();
+            cat.setCategoryCode(code);
+            cat.setCategoryType("service");
+            cat.setUnit(unit);
+
+            int newCategoryId = priceDAO.insertCategoryReturnId(cat);
+
+            if (newCategoryId <= 0) {
+                request.setAttribute("errorMsg", "Không thể tạo price category. Vui lòng thử lại.");
+                request.getRequestDispatcher("/views/admin/services/createService.jsp").forward(request, response);
+                return;
+            }
+
+            // 2. Tạo price_history với giá vừa nhập
+            // Không dùng priceDAO.insertPrice() vì method đó tự cộng thêm 1 tháng vào effective_from
+            java.time.LocalDate effectiveFrom = java.time.LocalDate.now().withDayOfMonth(1);
+            java.sql.Connection conn = new Utils.DBContext().connection;
+            java.sql.PreparedStatement psPH = conn.prepareStatement(
+                "INSERT INTO price_history (category_id, price_amount, effective_from) VALUES (?, ?, ?)"
+            );
+            psPH.setInt(1, newCategoryId);
+            psPH.setBigDecimal(2, price);
+            psPH.setDate(3, java.sql.Date.valueOf(effectiveFrom));
+            psPH.executeUpdate();
+            psPH.close();
+            conn.close();
+
+            // 3. Tạo service link với category mới
+            Service s = new Service();
+            s.setServiceName(name);
+            s.setCategoryId(newCategoryId);
+            s.setDescription(description);
+            s.setImage(image);
+            serviceDAO.insertService(s);
+
+            response.sendRedirect(request.getContextPath() + "/services?action=adminList");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMsg", "Lỗi khi tạo service: " + e.getMessage());
+            request.getRequestDispatcher("/views/admin/services/createService.jsp").forward(request, response);
+        }
     }
-
     // ================= ADMIN: UPDATE =================
     private void updateService(HttpServletRequest request, HttpServletResponse response)
             throws IOException {

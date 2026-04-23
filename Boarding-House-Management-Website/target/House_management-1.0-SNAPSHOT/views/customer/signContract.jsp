@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color:#f4f6f9; }
+        body { background-color:#ffffff !important; }
         .page-header { background:linear-gradient(135deg,#0f3460,#16213e); color:white; border-radius:14px; padding:22px 28px; margin-bottom:24px; }
         .room-card { border-radius:12px; border:2px solid #dee2e6; cursor:pointer; transition:.2s; }
         .room-card:hover { border-color:#0f3460; transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.08)!important; }

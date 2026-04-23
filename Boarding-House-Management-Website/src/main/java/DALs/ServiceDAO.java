@@ -680,36 +680,38 @@ public class ServiceDAO extends DBContext {
     // GET ALL SERVICES (active only – customer-facing)
     // =============================
     public List<Service> getAllServices() {
-
-        List<Service> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM service WHERE is_deleted = 0";
-
-        try {
-
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-
-                Service s = new Service();
-
-                s.setServiceId(rs.getInt("service_id"));
-                s.setServiceName(rs.getString("service_name"));
-                s.setCategoryId(rs.getInt("category_id"));
-                s.setDescription(rs.getString("description"));
-                s.setImage(rs.getString("image"));
-                s.setIsDeleted(rs.getBoolean("is_deleted"));
-
-                list.add(s);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    List<Service> list = new ArrayList<>();
+    String sql = "SELECT s.service_id, s.service_name, s.category_id, s.description, s.image, s.is_deleted, "
+            + "pc.unit, "
+            + "ph.price_amount AS current_price "
+            + "FROM service s "
+            + "LEFT JOIN price_category pc ON s.category_id = pc.category_id "
+            + "LEFT JOIN price_history ph ON s.category_id = ph.category_id "
+            + "  AND ph.effective_from = (SELECT TOP 1 effective_from FROM price_history "
+            + "    WHERE category_id = s.category_id AND effective_from <= GETDATE() "
+            + "    ORDER BY effective_from DESC) "
+            + "WHERE s.is_deleted = 0";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Service s = new Service();
+            s.setServiceId(rs.getInt("service_id"));
+            s.setServiceName(rs.getString("service_name"));
+            s.setCategoryId(rs.getInt("category_id"));
+            s.setDescription(rs.getString("description"));
+            s.setImage(rs.getString("image"));
+            s.setIsDeleted(rs.getBoolean("is_deleted"));
+            s.setUnit(rs.getString("unit"));
+            java.math.BigDecimal price = rs.getBigDecimal("current_price");
+            s.setCurrentPrice(price != null ? price : java.math.BigDecimal.ZERO);
+            list.add(s);
         }
-
-        return list;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
     // =============================
     // GET ALL SERVICES (admin – includes hidden)
@@ -995,53 +997,42 @@ public class ServiceDAO extends DBContext {
     // GET USAGE BY USER ID (customer: service history)
     // =============================
     public List<ServiceUsage> getUsageByUserId(int userId) {
-
-        List<ServiceUsage> list = new ArrayList<>();
-
-        String sql = "SELECT su.usage_id, su.contract_id, su.service_id, su.quantity, "
-                + "su.usage_date, su.billed, su.status, su.user_id, "
-                + "s.service_name, r.room_number, "
-                + "COALESCE(u_req.full_name, u_owner.full_name, N'Không rõ') AS requester_name, "
-                + "ph.price_amount AS unit_price "
-                + "FROM service_usage su "
-                + "JOIN service s ON su.service_id = s.service_id "
-                + "JOIN contract c ON su.contract_id = c.contract_id "
-                + "JOIN room r ON c.room_id = r.room_id "
-                + "JOIN contract_user cu ON c.contract_id = cu.contract_id "
-                // Người thực sự gửi yêu cầu (từ service_usage.user_id)
-                + "LEFT JOIN [user] u_req ON su.user_id = u_req.user_id "
-                // Chủ phòng — fallback
-                + "LEFT JOIN contract_user cu_owner ON c.contract_id = cu_owner.contract_id AND cu_owner.role = 'owner' "
-                + "LEFT JOIN [user] u_owner ON cu_owner.user_id = u_owner.user_id "
-                + "LEFT JOIN price_history ph ON s.category_id = ph.category_id "
-                + "  AND ph.effective_from = ( "
-                + "    SELECT TOP 1 effective_from FROM price_history "
-                + "    WHERE category_id = s.category_id "
-                + "    AND effective_from <= su.usage_date "
-                + "    ORDER BY effective_from DESC "
-                + "  ) "
-                + "WHERE cu.user_id = ? "
-                + "GROUP BY su.usage_id, su.contract_id, su.service_id, su.quantity, "
-                + "su.usage_date, su.billed, su.status, su.user_id, "
-                + "s.service_name, r.room_number, u_req.full_name, u_owner.full_name, ph.price_amount "
-                + "ORDER BY su.usage_date DESC";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                ServiceUsage u = mapUsageDetail(rs);
-                list.add(u);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    List<ServiceUsage> list = new ArrayList<>();
+    String sql = "SELECT su.usage_id, su.contract_id, su.service_id, su.quantity, "
+            + "su.usage_date, su.billed, su.status, su.user_id, "
+            + "s.service_name, r.room_number, "
+            + "COALESCE(u_req.full_name, u_owner.full_name, N'Không rõ') AS requester_name, "
+            + "ph.price_amount AS unit_price, pc.unit AS service_unit "
+            + "FROM service_usage su "
+            + "JOIN service s ON su.service_id = s.service_id "
+            + "JOIN contract c ON su.contract_id = c.contract_id "
+            + "JOIN room r ON c.room_id = r.room_id "
+            + "JOIN contract_user cu ON c.contract_id = cu.contract_id AND cu.user_id = ? "
+            + "LEFT JOIN price_category pc ON s.category_id = pc.category_id "
+            + "LEFT JOIN [user] u_req ON su.user_id = u_req.user_id "
+            + "LEFT JOIN contract_user cu_owner ON c.contract_id = cu_owner.contract_id AND cu_owner.role = 'owner' "
+            + "LEFT JOIN [user] u_owner ON cu_owner.user_id = u_owner.user_id "
+            + "LEFT JOIN price_history ph ON s.category_id = ph.category_id "
+            + "  AND ph.effective_from = ( "
+            + "    SELECT TOP 1 effective_from FROM price_history "
+            + "    WHERE category_id = s.category_id "
+            + "    AND effective_from <= su.usage_date "
+            + "    ORDER BY effective_from DESC "
+            + "  ) "
+            + "ORDER BY su.usage_date DESC";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            ServiceUsage u = mapUsageDetail(rs);
+            list.add(u);
         }
-
-        return list;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
     // =============================
     // GET SERVICE CATEGORIES (for forms)
@@ -1161,9 +1152,10 @@ public class ServiceDAO extends DBContext {
                 + "su.usage_date, su.billed, su.status, su.user_id, "
                 + "s.service_name, r.room_number, "
                 + "COALESCE(u_req.full_name, u_owner.full_name, N'Không rõ') AS requester_name, "
-                + "ph.price_amount AS unit_price "
+                + "ph.price_amount AS unit_price, pc.unit AS service_unit "
                 + "FROM service_usage su "
                 + "JOIN service s ON su.service_id = s.service_id "
+                + "LEFT JOIN price_category pc ON s.category_id = pc.category_id "
                 + "JOIN contract c ON su.contract_id = c.contract_id "
                 + "JOIN room r ON c.room_id = r.room_id "
                 // Người thực sự gửi yêu cầu (lưu trong service_usage.user_id)
@@ -1284,7 +1276,7 @@ public class ServiceDAO extends DBContext {
         u.setUserId(rs.getInt("user_id"));
         u.setServiceName(rs.getString("service_name"));
         u.setRoomNumber(rs.getString("room_number"));
-        u.setRequesterName(rs.getString("requester_name"));
+        u.setUnit(rs.getString("service_unit"));
         BigDecimal unitPrice = rs.getBigDecimal("unit_price");
         if (unitPrice == null) unitPrice = BigDecimal.ZERO;
         u.setUnitPrice(unitPrice);
@@ -1302,12 +1294,13 @@ public class ServiceDAO extends DBContext {
                 + "su.usage_date, su.billed, su.status, su.user_id, "
                 + "s.service_name, r.room_number, "
                 + "COALESCE(u_req.full_name, u_owner.full_name, N'Không rõ') AS requester_name, "
-                + "ph.price_amount AS unit_price "
+                + "ph.price_amount AS unit_price, pc.unit AS service_unit "
                 + "FROM service_usage su "
                 + "JOIN service s ON su.service_id = s.service_id "
                 + "JOIN contract c ON su.contract_id = c.contract_id "
                 + "JOIN room r ON c.room_id = r.room_id "
                 // Người thực sự gửi yêu cầu
+                + "LEFT JOIN price_category pc ON s.category_id = pc.category_id "
                 + "LEFT JOIN [user] u_req ON su.user_id = u_req.user_id "
                 // Chủ phòng — fallback
                 + "LEFT JOIN contract_user cu_owner ON c.contract_id = cu_owner.contract_id AND cu_owner.role = 'owner' "
@@ -1327,5 +1320,16 @@ public class ServiceDAO extends DBContext {
             while (rs.next()) list.add(mapUsageDetail(rs));
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
+    }
+    public void updateRequestQuantity(int usageId, java.math.BigDecimal quantity) {
+        String sql = "UPDATE service_usage SET quantity = ? WHERE usage_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, quantity);
+            ps.setInt(2, usageId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

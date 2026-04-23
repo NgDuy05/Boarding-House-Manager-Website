@@ -368,7 +368,7 @@
                     <c:otherwise>
 
                         <li class="nav-item">
-                            <a class="btn btn-outline-light me-2"
+                            <a class="btn btn-outline-secondary me-2"
                                href="${pageContext.request.contextPath}/auth?action=login">
                                 Login
                             </a>

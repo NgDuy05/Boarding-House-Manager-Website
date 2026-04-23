@@ -16,6 +16,8 @@ public class Service {
     private String description;
     private String image;
     private boolean isDeleted;
+    private java.math.BigDecimal currentPrice;
+    private String unit;
 
     public Service() {
     }
@@ -76,5 +78,9 @@ public class Service {
     public void setIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
+    public java.math.BigDecimal getCurrentPrice() { return currentPrice; }
+public void setCurrentPrice(java.math.BigDecimal currentPrice) { this.currentPrice = currentPrice; }
+public String getUnit() { return unit; }
+public void setUnit(String unit) { this.unit = unit; }
     
 }

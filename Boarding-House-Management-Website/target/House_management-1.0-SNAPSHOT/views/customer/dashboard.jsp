@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; }
+        body { background-color: #ffffff !important; }
         .section-card {
             border: none;
             border-radius: 14px;
@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body class="bg-light" style="overflow-x:hidden;">
+<body style="overflow-x:hidden;">
 
 <%@ include file="../navbar.jsp" %>
 
