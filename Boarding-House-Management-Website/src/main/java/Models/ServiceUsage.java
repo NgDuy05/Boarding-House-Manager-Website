@@ -146,4 +146,8 @@ public class ServiceUsage {
     public void setUserId(Integer userId) {
         this.userId = userId;
     }
+
+    public void setUnit(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

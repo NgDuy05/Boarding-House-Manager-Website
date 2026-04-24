@@ -4,6 +4,8 @@
  */
 package Models;
 
+import java.math.BigDecimal;
+
 /**
  *
  * @author huudanh
@@ -75,6 +77,14 @@ public class Service {
 
     public void setIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public void setUnit(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void setCurrentPrice(BigDecimal currentServicePrice) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
 }

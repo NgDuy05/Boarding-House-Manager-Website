@@ -1328,4 +1328,16 @@ public class ServiceDAO extends DBContext {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+
+    public void updateRequestQuantity(int usageId, BigDecimal qty) {
+        String sql = "UPDATE service_usage SET quantity = ? WHERE usage_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, qty);
+            ps.setInt(2, usageId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

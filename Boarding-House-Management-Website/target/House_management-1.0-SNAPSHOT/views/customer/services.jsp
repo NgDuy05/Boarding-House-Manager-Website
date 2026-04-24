@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #f4f6f9; font-family: 'Inter', sans-serif; }
+        body { background: #ffffff; font-family: 'Inter', sans-serif; }
         .page-hero {
             background: linear-gradient(135deg, #0ea5e9, #6366f1);
             color: #fff; padding: 48px 0 56px; margin-bottom: -32px;
@@ -116,10 +116,27 @@
 
                                     <div class="p-4">
                                     <div class="svc-name mb-1">${svc.serviceName}</div>
-                                    <div class="svc-desc mb-3">
+                                    <div class="svc-desc mb-2">
                                         <c:choose>
                                             <c:when test="${not empty svc.description}">${svc.description}</c:when>
                                             <c:otherwise>—</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="mb-3">
+                                        <c:set var="price" value="${priceMap[svc.categoryId]}"/>
+                                        <c:set var="unit"  value="${unitMap[svc.categoryId]}"/>
+                                        <c:choose>
+                                            <c:when test="${not empty price and price > 0}">
+                                                <span class="fw-semibold text-primary" style="font-size:.95rem;">
+                                                    <fmt:formatNumber value="${price}" type="number" maxFractionDigits="0"/> đ
+                                                </span>
+                                                <c:if test="${not empty unit}">
+                                                    <span class="text-muted" style="font-size:.8rem;">/ ${unit}</span>
+                                                </c:if>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="text-muted" style="font-size:.85rem;">Liên hệ để biết giá</span>
+                                            </c:otherwise>
                                         </c:choose>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between">

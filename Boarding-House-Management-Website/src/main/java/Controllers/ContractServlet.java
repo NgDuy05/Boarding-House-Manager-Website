@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContractServlet extends HttpServlet {
 
@@ -493,11 +495,19 @@ public class ContractServlet extends HttpServlet {
         List<User>         customers = userDAO.getAllCustomers(null, "active");
         List<ContractTenant> contractTenants = contractDAO.getTenantsByContractId(id);
 
+        // Build map userId -> User để JSP lấy phone, cccd
+        Map<Integer, User> userInfoMap = new HashMap<>();
+        for (ContractUser cu : tenants) {
+            User u = userDAO.getUserByIdAny(cu.getUserId());
+            if (u != null) userInfoMap.put(cu.getUserId(), u);
+        }
+
         request.setAttribute("contract",        c);
         request.setAttribute("tenants",         tenants);
         request.setAttribute("bills",           bills);
         request.setAttribute("customers",       customers);
         request.setAttribute("contractTenants", contractTenants);
+        request.setAttribute("userInfoMap",     userInfoMap);
         forward(request, response, "/views/admin/contracts/contractDetail.jsp");
     }
 

@@ -200,7 +200,6 @@
                                         <%-- Actions --%>
                                         <td class="text-center pe-4">
                                             <div class="d-flex justify-content-center gap-1">
-                                                <%-- Quick approve/reject shortcuts --%>
                                                 <c:if test="${req.status == 'pending'}">
                                                     <a href="${pageContext.request.contextPath}/services?action=approve&id=${req.usageId}&from=${statusFilter}"
                                                        class="btn btn-sm btn-success"
@@ -215,11 +214,10 @@
                                                         <i class="bi bi-x-lg"></i>
                                                     </a>
                                                 </c:if>
-                                                <%-- Edit/Update Status button (always visible) --%>
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-primary"
                                                         title="Update Status"
-                                                        onclick="openStatusModal(${req.usageId}, '${req.status}', '${statusFilter}')"
+                                                        onclick="openStatusModal(${req.usageId}, '${req.status}', '${statusFilter}', ${req.quantity}, ${req.unitPrice})"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#updateStatusModal">
                                                     <i class="bi bi-pencil-square"></i>
@@ -271,12 +269,27 @@
                         <p class="text-muted small mb-3">
                             Select the new status for request <strong>#<span id="modalUsageIdDisplay"></span></strong>.
                         </p>
-                        <label class="form-label fw-semibold">New Status</label>
-                        <select name="status" id="modalStatus" class="form-select">
-                            <option value="pending">⏳ Pending</option>
-                            <option value="approved">✅ Approved</option>
-                            <option value="rejected">❌ Rejected</option>
-                        </select>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">New Status</label>
+                            <select name="status" id="modalStatus" class="form-select">
+                                <option value="pending">⏳ Pending</option>
+                                <option value="approved">✅ Approved</option>
+                                <option value="rejected">❌ Rejected</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Quantity</label>
+                            <input type="number" name="quantity" id="modalQty"
+                                   class="form-control" min="0.01" step="0.01"
+                                   oninput="recalcEstCost()">
+                        </div>
+
+                        <div class="p-3 rounded-3" style="background:#f0fdf4">
+                            <div class="small text-muted mb-1">Est. Cost</div>
+                            <div class="fw-bold fs-5 text-success" id="modalEstCost">—</div>
+                        </div>
                     </div>
 
                     <div class="modal-footer border-top-0 pt-0">
@@ -291,11 +304,25 @@
     </div>
 
     <script>
-        function openStatusModal(usageId, currentStatus, statusFilter) {
-            document.getElementById('modalUsageId').value        = usageId;
+        var _unitPrice = 0;
+
+        function openStatusModal(usageId, currentStatus, statusFilter, qty, unitPrice) {
+            _unitPrice = parseFloat(unitPrice) || 0;
+
+            document.getElementById('modalUsageId').value             = usageId;
             document.getElementById('modalUsageIdDisplay').textContent = usageId;
-            document.getElementById('modalStatus').value         = currentStatus;
-            document.getElementById('modalStatusFilter').value   = statusFilter || '';
+            document.getElementById('modalStatus').value              = currentStatus;
+            document.getElementById('modalStatusFilter').value        = statusFilter || '';
+            document.getElementById('modalQty').value                 = qty;
+
+            recalcEstCost();
+        }
+
+        function recalcEstCost() {
+            var qty  = parseFloat(document.getElementById('modalQty').value) || 0;
+            var cost = qty * _unitPrice;
+            document.getElementById('modalEstCost').textContent =
+                cost.toLocaleString('vi-VN') + '₫';
         }
     </script>
 

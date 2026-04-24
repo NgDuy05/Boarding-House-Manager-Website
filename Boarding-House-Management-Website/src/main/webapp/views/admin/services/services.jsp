@@ -68,6 +68,7 @@
                                     <th class="ps-4">#</th>
                                     <th>Service Name</th>
                                     <th>Category</th>
+                                    <th>Price</th>
                                     <th>Description</th>
                                     <th class="text-center">Status</th>
                                     <th class="text-center">Actions</th>
@@ -96,6 +97,23 @@
                                             <span class="badge bg-light text-dark border">
                                                 Cat. ${svc.categoryId}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <c:set var="price" value="${priceMap[svc.categoryId]}"/>
+                                            <c:set var="unit"  value="${unitMap[svc.categoryId]}"/>
+                                            <c:choose>
+                                                <c:when test="${not empty price and price > 0}">
+                                                    <span class="fw-semibold text-primary">
+                                                        <fmt:formatNumber value="${price}" type="number" maxFractionDigits="0"/> đ
+                                                    </span>
+                                                    <c:if test="${not empty unit}">
+                                                        <span class="text-muted small">/ ${unit}</span>
+                                                    </c:if>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted small">—</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </td>
                                         <td class="text-muted small">
                                             <c:choose>

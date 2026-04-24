@@ -78,4 +78,12 @@ public class ContractUser {
     public void   setEmail(String v)       { this.email = v; }
     public String getPhone()               { return phone; }
     public void   setPhone(String v)       { this.phone = v; }
+
+    public void setCccd(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void setBirthDate(LocalDate toLocalDate) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

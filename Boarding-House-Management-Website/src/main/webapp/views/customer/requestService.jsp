@@ -167,7 +167,8 @@
                                         <label class="svc-option w-100" id="label_${svc.serviceId}">
                                             <input type="checkbox" name="serviceIds"
                                                    value="${svc.serviceId}"
-                                                   onchange="updateSelected(this)">
+                                                   onchange="updateSelected(this)"
+                                                   ${param.serviceId == svc.serviceId ? 'checked' : ''}>
                                             <div class="svc-icon">
                                                 <i class="bi bi-lightning-charge-fill"></i>
                                             </div>

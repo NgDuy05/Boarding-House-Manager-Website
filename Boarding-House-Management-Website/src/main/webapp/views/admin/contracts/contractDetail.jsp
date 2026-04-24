@@ -110,24 +110,24 @@
                         <span class="badge bg-white text-dark ms-1">${tenants.size()}</span>
                     </button>
                 </li>
-                <li class="nav-item">
+<!--                <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-contract-tenants">
                         <i class="bi bi-person-vcard me-1"></i>Occupants
                         <span class="badge bg-white text-dark ms-1">${contractTenants.size()}</span>
                     </button>
-                </li>
+                </li>-->
                 <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bills">
                         <i class="bi bi-receipt me-1"></i>Bills
                         <span class="badge bg-white text-dark ms-1">${bills.size()}</span>
                     </button>
                 </li>
-                <li class="nav-item">
+<!--                <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-resident-history">
                         <i class="bi bi-clock-history me-1"></i>Resident History
                         <span class="badge bg-white text-dark ms-1">${contractTenants.size()}</span>
                     </button>
-                </li>
+                </li>-->
             </ul>
 
             <div class="tab-content">
@@ -156,6 +156,11 @@
                                                 <div class="flex-grow-1 min-width-0">
                                                     <div class="fw-semibold">${not empty t.fullName ? t.fullName : t.username}</div>
                                                     <div class="text-muted small">@${t.username}</div>
+                                                    <c:set var="uInfo" value="${userInfoMap[t.userId]}"/>
+                                                    <div class="text-muted small mt-1">
+                                                        <c:if test="${not empty uInfo.phone}"><i class="bi bi-telephone me-1"></i>${uInfo.phone}</c:if>
+                                                        <c:if test="${not empty uInfo.cccd}"><span class="ms-2"><i class="bi bi-person-vcard me-1"></i>${uInfo.cccd}</span></c:if>
+                                                    </div>
                                                 </div>
                                                             <span class="badge ${t.role == 'owner' ? 'bg-primary' : 'bg-secondary'} rounded-pill">${t.role}</span>
                                             </div>
