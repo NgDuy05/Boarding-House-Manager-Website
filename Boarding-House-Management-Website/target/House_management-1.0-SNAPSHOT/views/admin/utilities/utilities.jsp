@@ -1,35 +1,57 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="t"   tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 
 <t:layout>
 
 <style>
+    /* 1. Header Gradient using the dark blues */
     .page-header {
-        background: linear-gradient(135deg, #7db8d4, #BDD8E9, #d9edf7);
-        color: #1a1a1a;
+        background: linear-gradient(135deg, #001D39, #0A4174, #49769F);
+        color: white;
         border-radius: 12px;
         padding: 20px 24px;
         margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 29, 57, 0.15);
     }
-    .page-header .btn-dark { background: rgba(0,0,0,0.12); border: none; color: #1a1a1a; font-weight: 600; }
-    .page-header .btn-dark:hover { background: rgba(0,0,0,0.22); }
+    .page-header .btn-light { background: #fff; border: none; color: #001D39; font-weight: 600; }
+    .page-header .btn-light:hover { background: #BDD8E9; color: #001D39; }
+    
+    /* 2. Table styling */
     .table-card { border-radius: 14px; border: none; }
-    .table thead th { background: #f8f9fa; color: #6c757d; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; border: none; }
-    .table tbody tr:hover { background: #edf5fa; }
+    .table thead th { 
+        background: #BDD8E9; 
+        color: #001D39; 
+        font-size: 12px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: .5px; 
+        border: none; 
+    }
+    .table tbody tr:hover { background: rgba(123, 189, 232, 0.15); }
     .stat-card { border-radius: 12px; border: none; padding: 14px 20px; }
-    .pagination .page-link { color: #5a9cbd; }
-    .pagination .page-item.active .page-link { background: #7db8d4; border-color: #7db8d4; color: #fff; }
+    
+    /* 3. Pagination using Dark Blue */
+    .pagination .page-link { color: #0A4174; border-color: #dee2e6; }
+    .pagination .page-item.active .page-link { background-color: #0A4174; border-color: #0A4174; color: white; }
+    .pagination .page-link:hover { background: #BDD8E9; color: #001D39; }
+
+    /* 4. Custom Action Buttons */
+    .btn-outline-action-view { border-color: #4E8EA2; color: #4E8EA2; }
+    .btn-outline-action-view:hover { background-color: #4E8EA2; color: white; }
+
+    .btn-outline-action-edit { border-color: #0A4174; color: #0A4174; }
+    .btn-outline-action-edit:hover { background-color: #0A4174; color: white; }
 </style>
 
     <%-- Header --%>
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-1"><i class="bi bi-lightning-charge-fill me-2"></i>Utilities</h4>
-            <small class="opacity-75">Manage usage-based services: Electricity, Water, Gas, etc.</small>
+            <small class="opacity-75" style="color: #BDD8E9;">Manage usage-based services: Electricity, Water, Gas, etc.</small>
         </div>
-        <a href="${pageContext.request.contextPath}/utility?action=create" class="btn btn-dark fw-semibold">
-            <i class="bi bi-plus-circle-fill me-1"></i>Add Utility
+        <a href="${pageContext.request.contextPath}/utility?action=create" class="btn btn-light fw-semibold text-dark">
+            <i class="bi bi-plus-circle-fill me-1" style="color: #0A4174;"></i>Add Utility
         </a>
     </div>
 
@@ -54,7 +76,7 @@
         </div>
         <div class="col-6 col-md-3">
             <div class="card stat-card shadow-sm text-center">
-                <div class="fw-bold fs-4 text-dark">${utilities.size()}</div>
+                <div class="fw-bold fs-4" style="color: #001D39;">${utilities.size()}</div>
                 <div class="text-muted small">Total</div>
             </div>
         </div>
@@ -64,7 +86,7 @@
     <div class="card table-card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table align-middle mb-0">
                     <thead>
                         <tr>
                             <th class="ps-4">#</th>
@@ -84,17 +106,18 @@
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="rounded-circle p-2 ${u.isDeleted ? 'bg-secondary bg-opacity-10' : ''}"
-                                                     style="${not u.isDeleted ? 'background:rgba(189,216,233,0.4)' : ''}">
+                                                     style="${not u.isDeleted ? 'background: rgba(123, 189, 232, 0.2);' : ''}">
                                                     <i class="bi bi-lightning-charge ${u.isDeleted ? 'text-secondary' : ''}"
-                                                       style="${not u.isDeleted ? 'color:#5a9cbd' : ''}"></i>
+                                                       style="${not u.isDeleted ? 'color:#0A4174;' : ''}"></i>
                                                 </div>
-                                                <span class="fw-semibold ${u.isDeleted ? 'text-decoration-line-through text-muted' : ''}">
+                                                <span class="fw-semibold ${u.isDeleted ? 'text-decoration-line-through text-muted' : ''}"
+                                                      style="${not u.isDeleted ? 'color: #0A4174;' : ''}">
                                                     ${u.utilityName}
                                                 </span>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
+                                            <span class="badge border" style="background: rgba(73, 118, 159, 0.1); color: #49769F; border-color: rgba(73, 118, 159, 0.2) !important;">
                                                 ${u.unit}
                                             </span>
                                         </td>
@@ -121,11 +144,11 @@
                                         <td class="text-center pe-4">
                                             <c:if test="${not u.isDeleted}">
                                                 <a href="${pageContext.request.contextPath}/utility?action=detail&id=${u.utilityId}"
-                                                   class="btn btn-sm btn-outline-info me-1" title="View">
+                                                   class="btn btn-sm btn-outline-action-view me-1" title="View">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/utility?action=edit&id=${u.utilityId}"
-                                                   class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                                   class="btn btn-sm btn-outline-action-edit me-1" title="Edit">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/utility?action=hide&id=${u.utilityId}"
@@ -136,7 +159,7 @@
                                             </c:if>
                                             <c:if test="${u.isDeleted}">
                                                 <a href="${pageContext.request.contextPath}/utility?action=restore&id=${u.utilityId}"
-                                                   class="btn btn-sm btn-outline-success" title="Restore"
+                                                   class="btn btn-sm btn-outline-action-view" title="Restore"
                                                    onclick="return confirm('Restore utility \'${u.utilityName}\'?')">
                                                     <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
                                                 </a>
@@ -148,7 +171,7 @@
                             <c:otherwise>
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>No utilities found.
+                                        <i class="bi bi-inbox fs-3 d-block mb-2" style="color: #6EA2B3;"></i>No utilities found.
                                     </td>
                                 </tr>
                             </c:otherwise>

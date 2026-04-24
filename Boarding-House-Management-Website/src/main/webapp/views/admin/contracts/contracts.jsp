@@ -9,13 +9,52 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
-        .page-header { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color:white; border-radius:12px; padding:20px 24px; margin-bottom:24px; }
-        .table-card  { border-radius:14px; border:none; }
-        .table thead th { background:#f8f9fa; color:#6c757d; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; border:none; }
-        .table tbody tr:hover { background:#f0f4ff; }
-        .stat-card { border-radius:12px; border:none; padding:14px 20px; }
-        .pagination .page-link { color:#0f3460; }
-        .pagination .page-item.active .page-link { background:#0f3460; border-color:#0f3460; }
+        
+        /* 1. Header Gradient using the dark blues */
+        .page-header { 
+            background: linear-gradient(135deg, #001D39, #0A4174, #49769F); 
+            color: white; 
+            border-radius: 12px; 
+            padding: 20px 24px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 4px 12px rgba(0, 29, 57, 0.15);
+        }
+        
+        .table-card  { border-radius: 14px; border: none; }
+        
+        /* 2. Table Header using Light Blue & Very Dark Blue text */
+        .table thead th { 
+            background: #BDD8E9; 
+            color: #001D39; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: .5px; 
+            border: none; 
+        }
+        
+        /* 3. Table Hover using Sky Blue with opacity */
+        .table tbody tr:hover { background: rgba(123, 189, 232, 0.15); } /* #7BBDE8 nhạt */
+        
+        .stat-card { border-radius: 12px; border: none; padding: 14px 20px; }
+        
+        /* 4. Pagination using Dark Blue */
+        .pagination .page-link { color: #0A4174; }
+        .pagination .page-item.active .page-link { background: #0A4174; border-color: #0A4174; color: white; }
+        .pagination .page-link:hover { background: #BDD8E9; color: #001D39; }
+
+        /* 5. Custom Buttons to match the palette */
+        .btn-theme-dark { background-color: #001D39; color: white; border: none; }
+        .btn-theme-dark:hover { background-color: #0A4174; color: white; }
+
+        .btn-outline-theme { border-color: #49769F; color: #49769F; }
+        .btn-outline-theme:hover { background-color: #49769F; color: white; }
+
+        .btn-outline-action-view { border-color: #4E8EA2; color: #4E8EA2; }
+        .btn-outline-action-view:hover { background-color: #4E8EA2; color: white; }
+
+        .btn-outline-action-edit { border-color: #0A4174; color: #0A4174; }
+        .btn-outline-action-edit:hover { background-color: #0A4174; color: white; }
     </style>
 </head>
 <body>
@@ -46,10 +85,10 @@
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-1"><i class="bi bi-file-earmark-text-fill me-2"></i>Rental Contracts</h4>
-            <small class="opacity-75">Manage all rental contracts, tenants and billing</small>
+            <small class="opacity-75" style="color: #BDD8E9;">Manage all rental contracts, tenants and billing</small>
         </div>
-        <a href="${pageContext.request.contextPath}/contract?action=create" class="btn btn-light fw-semibold">
-            <i class="bi bi-plus-circle-fill me-1"></i>New Contract
+        <a href="${pageContext.request.contextPath}/contract?action=create" class="btn btn-light fw-semibold text-dark">
+            <i class="bi bi-plus-circle-fill me-1" style="color: #0A4174;"></i>New Contract
         </a>
     </div>
 
@@ -69,7 +108,7 @@
         </div>
         <div class="col-6 col-md-3">
             <div class="card stat-card shadow-sm text-center">
-                <div class="fw-bold fs-4 text-dark">${totalItems}</div>
+                <div class="fw-bold fs-4" style="color: #001D39;">${totalItems}</div>
                 <div class="text-muted small">Total</div>
             </div>
         </div>
@@ -96,8 +135,8 @@
                         <option value="expired"    ${statusFilter == 'expired'    ? 'selected' : ''}>Expired</option>
                     </select>
                 </div>
-                <div class="col-md-2"><button type="submit" class="btn btn-dark w-100"><i class="bi bi-funnel me-1"></i>Filter</button></div>
-                <div class="col-md-2"><a href="${pageContext.request.contextPath}/contract?action=list" class="btn btn-outline-secondary w-100"><i class="bi bi-x-circle me-1"></i>Clear</a></div>
+                <div class="col-md-2"><button type="submit" class="btn btn-theme-dark w-100"><i class="bi bi-funnel me-1"></i>Filter</button></div>
+                <div class="col-md-2"><a href="${pageContext.request.contextPath}/contract?action=list" class="btn btn-outline-theme w-100"><i class="bi bi-x-circle me-1"></i>Clear</a></div>
             </form>
         </div>
     </div>
@@ -106,7 +145,7 @@
     <div class="card table-card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table align-middle mb-0">
                     <thead>
                         <tr>
                             <th class="ps-4">ID</th>
@@ -124,7 +163,7 @@
                         <c:choose>
                             <c:when test="${empty contracts}">
                                 <tr><td colspan="9" class="text-center py-5 text-muted">
-                                    <i class="bi bi-file-earmark-x fs-3 d-block mb-2"></i>No contracts found
+                                    <i class="bi bi-file-earmark-x fs-3 d-block mb-2" style="color: #6EA2B3;"></i>No contracts found
                                 </td></tr>
                             </c:when>
                             <c:otherwise>
@@ -132,7 +171,7 @@
                                     <tr>
                                         <td class="ps-4 text-muted small fw-semibold">#${c.contractId}</td>
                                         <td>
-                                            <div class="fw-semibold">Room ${not empty c.roomNumber ? c.roomNumber : c.roomId}</div>
+                                            <div class="fw-semibold" style="color: #0A4174;">Room ${not empty c.roomNumber ? c.roomNumber : c.roomId}</div>
                                             <div class="text-muted small">${c.categoryName}</div>
                                         </td>
                                         <td>
@@ -157,9 +196,9 @@
                                         </td>
                                         <td class="text-center pe-4">
                                             <a href="${pageContext.request.contextPath}/contract?action=detail&id=${c.contractId}"
-                                               class="btn btn-sm btn-outline-info me-1" title="View Detail"><i class="bi bi-eye"></i></a>
+                                               class="btn btn-sm btn-outline-action-view me-1" title="View Detail"><i class="bi bi-eye"></i></a>
                                             <a href="${pageContext.request.contextPath}/contract?action=edit&id=${c.contractId}"
-                                               class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                                               class="btn btn-sm btn-outline-action-edit me-1" title="Edit"><i class="bi bi-pencil"></i></a>
                                             <c:if test="${c.status == 'active'}">
                                                 <button class="btn btn-sm btn-outline-danger me-1" title="Terminate"
                                                     onclick="confirmTerminate(${c.contractId}, ${c.roomId}, '${c.roomNumber}')">

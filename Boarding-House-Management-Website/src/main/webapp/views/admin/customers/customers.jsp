@@ -10,47 +10,76 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
+        
+        /* 1. Header Gradient using the dark blues */
         .page-header {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
+            background: linear-gradient(135deg, #001D39, #0A4174, #49769F);
             color: white;
             border-radius: 12px;
             padding: 20px 24px;
             margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 29, 57, 0.15);
         }
+        
         .table-card { border-radius: 14px; border: none; }
+        
+        /* 2. Table Header */
         .table thead th {
-            background: #f8f9fa;
-            color: #6c757d;
+            background: #BDD8E9;
+            color: #001D39;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .5px;
             border: none;
         }
-        .table tbody tr:hover { background: #f0fff4; }
+        
+        /* 3. Table Hover */
+        .table tbody tr:hover { background: rgba(123, 189, 232, 0.15); }
+        
+        /* 4. Avatars using Theme Colors */
         .avatar-sm {
             width: 38px; height: 38px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #11998e, #38ef7d);
+            background: linear-gradient(135deg, #001D39, #0A4174);
             display: inline-flex; align-items: center; justify-content: center;
             color: white; font-weight: 700; font-size: 14px;
             flex-shrink: 0;
         }
-        .avatar-sm.hidden-user { background: linear-gradient(135deg, #adb5bd, #6c757d); }
+        .avatar-sm.hidden-user { background: linear-gradient(135deg, #49769F, #6EA2B3); }
+        
         .stat-card { border-radius: 12px; border: none; padding: 14px 20px; }
         tr.row-hidden td { opacity: 0.6; }
         tr.row-hidden .customer-name { text-decoration: line-through; }
+        
+        /* 5. Pagination */
         .pagination .page-link {
-            color: #11998e;
+            color: #0A4174;
             border-color: #dee2e6;
         }
         .pagination .page-item.active .page-link {
-            background-color: #11998e;
-            border-color: #11998e;
+            background-color: #0A4174;
+            border-color: #0A4174;
             color: white;
         }
-        .pagination .page-link:hover { background-color: #e8fff8; }
+        .pagination .page-link:hover { background-color: #BDD8E9; color: #001D39; }
         .pagination .page-item.disabled .page-link { color: #adb5bd; }
+
+        /* 6. Custom Buttons to match the palette */
+        .btn-theme-dark { background-color: #001D39; color: white; border: none; }
+        .btn-theme-dark:hover { background-color: #0A4174; color: white; }
+
+        .btn-outline-theme { border-color: #49769F; color: #49769F; }
+        .btn-outline-theme:hover { background-color: #49769F; color: white; }
+
+        .btn-outline-action-view { border-color: #4E8EA2; color: #4E8EA2; }
+        .btn-outline-action-view:hover { background-color: #4E8EA2; color: white; }
+
+        .btn-outline-action-edit { border-color: #0A4174; color: #0A4174; }
+        .btn-outline-action-edit:hover { background-color: #0A4174; color: white; }
+        
+        .btn-theme-teal { background-color: #4E8EA2; color: white; border: none; }
+        .btn-theme-teal:hover { background-color: #0A4174; color: white; }
     </style>
 </head>
 <body>
@@ -85,11 +114,11 @@
                 <h4 class="fw-bold mb-1">
                     <i class="bi bi-person-lines-fill me-2"></i>Manage Customers
                 </h4>
-                <small class="opacity-75">View, add, edit, and hide/restore tenant accounts</small>
+                <small class="opacity-75" style="color: #BDD8E9;">View, add, edit, and hide/restore tenant accounts</small>
             </div>
             <a href="${pageContext.request.contextPath}/manage-customer?action=create"
-               class="btn btn-light fw-semibold">
-                <i class="bi bi-person-plus-fill me-1"></i>Add Customer
+               class="btn btn-light fw-semibold text-dark">
+                <i class="bi bi-person-plus-fill me-1" style="color: #0A4174;"></i>Add Customer
             </a>
         </div>
 
@@ -109,7 +138,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="card stat-card shadow-sm text-center">
-                    <div class="fw-bold fs-4 text-dark">${totalItems}</div>
+                    <div class="fw-bold fs-4" style="color: #001D39;">${totalItems}</div>
                     <div class="text-muted small">Total</div>
                 </div>
             </div>
@@ -139,13 +168,13 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-success w-100">
+                        <button type="submit" class="btn btn-theme-dark w-100">
                             <i class="bi bi-funnel me-1"></i>Filter
                         </button>
                     </div>
                     <div class="col-md-2">
                         <a href="${pageContext.request.contextPath}/manage-customer"
-                           class="btn btn-outline-secondary w-100">
+                           class="btn btn-outline-theme w-100">
                             <i class="bi bi-x-circle me-1"></i>Clear
                         </a>
                     </div>
@@ -157,7 +186,7 @@
         <div class="card table-card shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table align-middle mb-0">
                         <thead>
                             <tr>
                                 <th class="ps-4">#</th>
@@ -173,8 +202,8 @@
                             <c:choose>
                                 <c:when test="${empty customers}">
                                     <tr>
-                                        <td colspan="6" class="text-center py-5 text-muted">
-                                            <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                                        <td colspan="7" class="text-center py-5 text-muted">
+                                            <i class="bi bi-person-x fs-3 d-block mb-2" style="color: #6EA2B3;"></i>
                                             No customers found
                                         </td>
                                     </tr>
@@ -191,7 +220,7 @@
                                                         ${not empty c.fullName ? c.fullName.substring(0,1).toUpperCase() : c.username.substring(0,1).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <div class="fw-semibold customer-name">${not empty c.fullName ? c.fullName : '—'}</div>
+                                                        <div class="fw-semibold customer-name" style="color: #0A4174;">${not empty c.fullName ? c.fullName : '—'}</div>
                                                         <div class="text-muted small">@${c.username}</div>
                                                     </div>
                                                 </div>
@@ -217,11 +246,11 @@
                                                 <c:choose>
                                                     <c:when test="${not c.isDeleted}">
                                                         <a href="${pageContext.request.contextPath}/manage-customer?action=detail&id=${c.userId}"
-                                                           class="btn btn-sm btn-outline-info me-1" title="View Detail">
+                                                           class="btn btn-sm btn-outline-action-view me-1" title="View Detail">
                                                             <i class="bi bi-eye"></i>
                                                         </a>
                                                         <a href="${pageContext.request.contextPath}/manage-customer?action=edit&id=${c.userId}"
-                                                           class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                                           class="btn btn-sm btn-outline-action-edit me-1" title="Edit">
                                                             <i class="bi bi-pencil"></i>
                                                         </a>
                                                         <button class="btn btn-sm btn-outline-secondary"
@@ -232,7 +261,7 @@
                                                     </c:when>
                                                     <c:otherwise>
                                                         <a href="${pageContext.request.contextPath}/manage-customer?action=restore&id=${c.userId}"
-                                                           class="btn btn-sm btn-success w-100" title="Restore"
+                                                           class="btn btn-sm btn-theme-teal w-100" title="Restore"
                                                            onclick="return confirm('Restore customer @${c.username}?')">
                                                             <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
                                                         </a>
@@ -306,14 +335,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">
+                    <h5 class="modal-title fw-bold" style="color: #001D39;">
                         <i class="bi bi-eye-slash me-2 text-secondary"></i>Hide Customer
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-muted mb-0">
-                        Are you sure you want to hide customer <strong id="hideUsername"></strong>?
+                        Are you sure you want to hide customer <strong id="hideUsername" style="color: #0A4174;"></strong>?
                         You can restore them later.
                     </p>
                 </div>

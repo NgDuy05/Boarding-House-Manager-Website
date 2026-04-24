@@ -5,21 +5,53 @@
 <t:layout>
 
 <style>
+    /* 1. Header Gradient using the dark blues */
     .page-header {
-        background: linear-gradient(135deg, #062a4e, #0A4174, #1a6aad);
+        background: linear-gradient(135deg, #001D39, #0A4174, #49769F);
         color: #ffffff;
         border-radius: 12px;
         padding: 20px 24px;
         margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 29, 57, 0.15);
     }
-    .page-header .btn-dark { background: rgba(255,255,255,0.15); border: none; color: #ffffff; font-weight: 600; }
-    .page-header .btn-dark:hover { background: rgba(255,255,255,0.28); }
+    .page-header .btn-dark { background: #ffffff; border: none; color: #001D39; font-weight: 600; }
+    .page-header .btn-dark:hover { background: #BDD8E9; color: #001D39; }
+    
     .table-card  { border-radius: 14px; border: none; }
-    .table thead th { background: #f8f9fa; color: #6c757d; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; border: none; }
-    .table tbody tr:hover { background: #f0f4ff; }
+    
+    /* 2. Table Header using Ice Blue & Very Dark Blue text */
+    .table thead th { 
+        background: #BDD8E9; 
+        color: #001D39; 
+        font-size: 12px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: .5px; 
+        border: none; 
+    }
+    
+    /* 3. Table Hover using Sky Blue with opacity */
+    .table tbody tr:hover { background: rgba(123, 189, 232, 0.15); }
+    
     .stat-card { border-radius: 12px; border: none; padding: 14px 20px; }
+    
+    /* 4. Pagination using Dark Blue */
     .pagination .page-link { color: #0A4174; }
     .pagination .page-item.active .page-link { background: #0A4174; border-color: #0A4174; color: #ffffff; font-weight: 700; }
+    .pagination .page-link:hover { background: #BDD8E9; color: #001D39; }
+
+    /* 5. Custom Buttons to match the palette */
+    .btn-theme-dark { background-color: #001D39; color: white; border: none; }
+    .btn-theme-dark:hover { background-color: #0A4174; color: white; }
+
+    .btn-outline-theme { border-color: #49769F; color: #49769F; }
+    .btn-outline-theme:hover { background-color: #49769F; color: white; }
+
+    .btn-outline-action-view { border-color: #4E8EA2; color: #4E8EA2; }
+    .btn-outline-action-view:hover { background-color: #4E8EA2; color: white; }
+
+    .btn-outline-action-edit { border-color: #0A4174; color: #0A4174; }
+    .btn-outline-action-edit:hover { background-color: #0A4174; color: white; }
 </style>
 
     <%-- Flash messages --%>
@@ -42,10 +74,10 @@
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-1"><i class="bi bi-door-open-fill me-2"></i>Room List</h4>
-            <small class="opacity-75">Manage all rooms and their availability</small>
+            <small class="opacity-75" style="color: #BDD8E9;">Manage all rooms and their availability</small>
         </div>
-        <a href="${pageContext.request.contextPath}/room?action=create" class="btn btn-dark fw-semibold">
-            <i class="bi bi-plus-circle-fill me-1"></i>Add Room
+        <a href="${pageContext.request.contextPath}/room?action=create" class="btn btn-dark fw-semibold text-dark">
+            <i class="bi bi-plus-circle-fill me-1" style="color: #0A4174;"></i>Add Room
         </a>
     </div>
 
@@ -71,7 +103,7 @@
         </div>
         <div class="col-6 col-md-3">
             <div class="card stat-card shadow-sm text-center">
-                <div class="fw-bold fs-4 text-dark">${totalRooms}</div>
+                <div class="fw-bold fs-4" style="color: #001D39;">${totalRooms}</div>
                 <div class="text-muted small">Total</div>
             </div>
         </div>
@@ -99,12 +131,12 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn w-100 fw-semibold" style="background:#0A4174; border:none; color:#ffffff;">
+                    <button type="submit" class="btn btn-theme-dark w-100 fw-semibold">
                         <i class="bi bi-funnel me-1"></i>Filter
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <a href="${pageContext.request.contextPath}/room?action=list" class="btn btn-outline-secondary w-100">
+                    <a href="${pageContext.request.contextPath}/room?action=list" class="btn btn-outline-theme w-100">
                         <i class="bi bi-x-circle me-1"></i>Clear
                     </a>
                 </div>
@@ -116,7 +148,7 @@
     <div class="card table-card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table align-middle mb-0">
                     <thead>
                         <tr>
                             <th class="ps-4">#</th>
@@ -131,7 +163,7 @@
                             <tr>
                                 <td class="ps-4 text-muted small">${s.index + 1}</td>
                                 <td>
-                                    <div class="fw-semibold"><i class="bi bi-house me-1 text-secondary"></i>${room.roomNumber}</div>
+                                    <div class="fw-semibold" style="color: #0A4174;"><i class="bi bi-house me-1" style="color: #6EA2B3;"></i>${room.roomNumber}</div>
                                 </td>
                                 <td>
                                     <div class="text-muted small">${not empty room.categoryName ? room.categoryName : '—'}</div>
@@ -151,11 +183,11 @@
                                 </td>
                                 <td class="text-center pe-4">
                                     <a href="${pageContext.request.contextPath}/room?action=detail&id=${room.roomId}"
-                                       class="btn btn-sm btn-outline-info me-1" title="Detail">
+                                       class="btn btn-sm btn-outline-action-view me-1" title="Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="${pageContext.request.contextPath}/room?action=edit&id=${room.roomId}"
-                                       class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                       class="btn btn-sm btn-outline-action-edit me-1" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <a href="${pageContext.request.contextPath}/room?action=delete&id=${room.roomId}"
@@ -170,7 +202,7 @@
                         <c:if test="${empty rooms}">
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>No rooms found.
+                                    <i class="bi bi-inbox fs-3 d-block mb-2" style="color: #6EA2B3;"></i>No rooms found.
                                 </td>
                             </tr>
                         </c:if>

@@ -142,12 +142,12 @@ body {
                 <i class="bi bi-wrench me-2"></i>Facilities
             </a>
         </li>
-        <li class="nav-item">
+<!--        <li class="nav-item">
             <a class="nav-link ${pageContext.request.requestURI.contains('/amenity') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/amenity">
                 <i class="bi bi-stars me-2"></i>Amenities
             </a>
-        </li>
+        </li>-->
         <li class="nav-item">
             <a class="nav-link ${pageContext.request.requestURI.contains('/utility') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/utility">
@@ -202,12 +202,12 @@ body {
                 <i class="bi bi-bell me-2"></i>Notifications
             </a>
         </li>
-        <li class="nav-item">
+<!--        <li class="nav-item">
             <a class="nav-link ${pageContext.request.requestURI.contains('/activity-log') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/activity-log">
                 <i class="bi bi-activity me-2"></i>Activity Logs
             </a>
-        </li>
+        </li>-->
     </ul>
 
 </nav>

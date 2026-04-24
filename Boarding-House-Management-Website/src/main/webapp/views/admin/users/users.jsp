@@ -10,42 +10,68 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
+        
+        /* 1. Header Gradient */
         .page-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #001D39, #0A4174, #49769F);
             color: white;
             border-radius: 12px;
             padding: 20px 24px;
             margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 29, 57, 0.15);
         }
+        
+        /* 2. Table styling */
         .table-card { border-radius: 14px; border: none; }
         .table thead th {
-            background: #f8f9fa;
-            color: #6c757d;
+            background: #BDD8E9;
+            color: #001D39;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .5px;
             border: none;
         }
-        .table tbody tr:hover { background: #f8f0ff; }
+        .table tbody tr:hover { background: rgba(123, 189, 232, 0.15); }
+        
+        /* 3. Role Badges using Theme Colors */
         .role-badge {
             display: inline-block;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
+            letter-spacing: 0.3px;
         }
-        .role-admin    { background: #fff3cd; color: #856404; }
-        .role-staff    { background: #cff4fc; color: #0a6071; }
-        .role-customer { background: #d1e7dd; color: #0a3622; }
+        .role-admin    { background: #001D39; color: white; }
+        .role-staff    { background: #4E8EA2; color: white; }
+        .role-customer { background: rgba(110, 162, 179, 0.15); color: #0A4174; border: 1px solid rgba(110, 162, 179, 0.3); }
+        
+        /* 4. Avatars */
         .avatar-sm {
             width: 36px; height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #001D39, #0A4174);
             display: inline-flex; align-items: center; justify-content: center;
             color: white; font-weight: 700; font-size: 14px;
             flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 29, 57, 0.2);
         }
+
+        /* 5. Pagination */
+        .pagination .page-link { color: #0A4174; border-color: #dee2e6; }
+        .pagination .page-item.active .page-link { background-color: #0A4174; border-color: #0A4174; color: white; }
+        .pagination .page-link:hover { background-color: #BDD8E9; color: #001D39; }
+
+        /* 6. Custom Buttons */
+        .btn-theme-dark { background-color: #001D39; color: white; border: none; }
+        .btn-theme-dark:hover { background-color: #0A4174; color: white; }
+
+        .btn-outline-theme { border-color: #49769F; color: #49769F; }
+        .btn-outline-theme:hover { background-color: #49769F; color: white; }
+
+        .btn-outline-action-edit { border-color: #0A4174; color: #0A4174; }
+        .btn-outline-action-edit:hover { background-color: #0A4174; color: white; }
     </style>
 </head>
 <body>
@@ -80,9 +106,9 @@
                 <h4 class="fw-bold mb-1">
                     <i class="bi bi-people-fill me-2"></i>User Management
                 </h4>
-                <small class="opacity-75">View and edit profiles of all users</small>
+                <small class="opacity-75" style="color: #BDD8E9;">View and edit profiles of all users</small>
             </div>
-            <div class="badge bg-white text-dark fs-6 px-3 py-2">
+            <div class="badge bg-white fs-6 px-3 py-2 shadow-sm" style="color: #001D39;">
                 Total: <strong>${totalItems} users</strong>
             </div>
         </div>
@@ -115,15 +141,15 @@
                     </div>
 
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-theme-dark w-100">
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>
                     </div>
 
                     <div class="col-md-2">
                         <a href="${pageContext.request.contextPath}/user?action=list"
-                           class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-x-circle me-1"></i> Clear Filters
+                           class="btn btn-outline-theme w-100">
+                            <i class="bi bi-x-circle me-1"></i> Clear
                         </a>
                     </div>
                 </form>
@@ -134,7 +160,7 @@
         <div class="card table-card shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table align-middle mb-0">
                         <thead>
                             <tr>
                                 <th class="ps-4">#</th>
@@ -150,7 +176,7 @@
                                 <c:when test="${empty users}">
                                     <tr>
                                         <td colspan="6" class="text-center py-5 text-muted">
-                                            <i class="bi bi-people fs-3 d-block mb-2"></i>
+                                            <i class="bi bi-people fs-3 d-block mb-2" style="color: #6EA2B3;"></i>
                                             No users found
                                         </td>
                                     </tr>
@@ -165,7 +191,7 @@
                                                         ${not empty u.fullName ? u.fullName.substring(0,1).toUpperCase() : u.username.substring(0,1).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <div class="fw-semibold">${u.fullName}</div>
+                                                        <div class="fw-semibold" style="color: #0A4174;">${u.fullName}</div>
                                                         <div class="text-muted small">@${u.username}</div>
                                                     </div>
                                                 </div>
@@ -190,7 +216,7 @@
                                             </td>
                                             <td class="text-center pe-4">
                                                 <a href="${pageContext.request.contextPath}/user?action=edit&id=${u.userId}"
-                                                   class="btn btn-sm btn-outline-primary me-1"
+                                                   class="btn btn-sm btn-outline-action-edit me-1"
                                                    title="Edit">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
@@ -256,12 +282,12 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Confirm Delete</h5>
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-circle me-2"></i>Confirm Delete</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-2">
                     <p class="text-muted">Are you sure you want to delete user
-                        <strong id="deleteUsername"></strong>?
+                        <strong id="deleteUsername" style="color: #0A4174;"></strong>?
                         This action cannot be undone.
                     </p>
                 </div>
@@ -277,7 +303,7 @@
 
     <script>
         function confirmDelete(userId, username) {
-            document.getElementById('deleteUsername').textContent = username;
+            document.getElementById('deleteUsername').textContent = '@' + username;
             document.getElementById('deleteConfirmBtn').href =
                 '${pageContext.request.contextPath}/user?action=delete&id=' + userId;
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
