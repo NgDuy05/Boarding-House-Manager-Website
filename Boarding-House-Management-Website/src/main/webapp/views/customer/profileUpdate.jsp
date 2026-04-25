@@ -1,5 +1,6 @@
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,15 +9,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #f4f6f9; font-family: 'Inter', sans-serif; }
+        /* 1. Import Font Pretendard */
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
+        /* 2. Ocean Palette Variables */
+        :root {
+            --ocean-900: #03045E;
+            --ocean-800: #023E8A;
+            --ocean-700: #0077B6;
+            --ocean-600: #0096C7;
+            --ocean-500: #00B4D8;
+            --ocean-400: #48CAE4;
+            --ocean-300: #90E0EF;
+            --ocean-200: #ADE8F4;
+            --ocean-100: #CAF0F8;
+            --ds-bg: #f4f7f9;
+            --ds-text: #292A2D;
+            --ds-heading: #171719;
+        }
+
+        body { 
+            background: var(--ds-bg); 
+            font-family: 'Pretendard', sans-serif !important; 
+            color: var(--ds-text);
+        }
+
+        /* ── Page header ── */
         .page-hero {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            background: linear-gradient(135deg, var(--ocean-900), var(--ocean-800), var(--ocean-700));
             border-radius: 16px; padding: 28px; color: #fff;
             display: flex; align-items: center; gap: 20px;
             margin-bottom: 24px; position: relative; overflow: hidden;
+            box-shadow: 0 8px 24px rgba(3, 4, 94, 0.15);
         }
         .page-hero::after {
             content: ''; position: absolute;
@@ -26,24 +51,26 @@
         }
         .hero-avatar {
             width: 72px; height: 72px;
-            background: rgba(255,255,255,.2); border-radius: 50%;
+            background: rgba(255,255,255,.15); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 32px; border: 2.5px solid rgba(255,255,255,.4); flex-shrink: 0;
+            font-size: 32px; border: 2.5px solid rgba(255,255,255,.3); flex-shrink: 0;
         }
         .page-hero h4 { font-weight: 700; margin-bottom: 2px; font-size: 1.3rem; }
         .page-hero small { opacity: .8; font-size: .88rem; }
 
+        /* ── Cards ── */
         .form-card {
             background: #fff; border-radius: 16px; border: none;
-            box-shadow: 0 2px 20px rgba(0,0,0,.07); padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,.04); padding: 2rem;
         }
         .section-label {
-            font-size: .75rem; font-weight: 700; color: #9ca3af;
+            font-size: .75rem; font-weight: 700; color: var(--ocean-700);
             text-transform: uppercase; letter-spacing: .6px;
             margin-bottom: 1rem; padding-bottom: .5rem;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px dashed var(--ocean-200);
         }
 
+        /* ── Inputs ── */
         .field-wrap { position: relative; }
         .field-wrap .field-icon {
             position: absolute; top: 50%; left: 12px;
@@ -56,35 +83,37 @@
             width: 100%; transition: border-color .2s, box-shadow .2s;
         }
         .field-wrap input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,.12); outline: none;
+            border-color: var(--ocean-600);
+            box-shadow: 0 0 0 3px rgba(0, 150, 199, 0.15); outline: none;
         }
         .field-wrap input.readonly-field {
             background: #f9fafb; color: #6b7280; cursor: not-allowed;
         }
         .form-label { font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: .35rem; }
-        .field-hint { font-size: .78rem; color: #9ca3af; margin-top: .3rem; }
+        .field-hint { font-size: .8rem; color: #9ca3af; margin-top: .3rem; font-weight: 500; }
         .field-hint.error { color: #ef4444; }
 
+        /* ── Buttons ── */
         .btn-save {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            background: linear-gradient(135deg, var(--ocean-800), var(--ocean-600));
             border: none; border-radius: 10px; color: #fff;
             font-weight: 600; font-size: .93rem; height: 44px; padding: 0 1.5rem;
-            display: inline-flex; align-items: center; gap: .4rem;
-            transition: opacity .2s, transform .15s; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+            transition: opacity .2s, transform .15s, box-shadow .2s; cursor: pointer;
         }
-        .btn-save:hover  { opacity: .9; }
+        .btn-save:hover  { opacity: .9; box-shadow: 0 4px 10px rgba(0, 119, 182, 0.3); }
         .btn-save:active { transform: scale(.98); }
+        
         .btn-cancel {
             border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff;
             color: #6b7280; font-weight: 600; font-size: .93rem;
             height: 44px; padding: 0 1.5rem;
-            display: inline-flex; align-items: center; gap: .4rem;
-            text-decoration: none; transition: border-color .2s, color .2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+            text-decoration: none; transition: border-color .2s, color .2s, background-color .2s;
         }
-        .btn-cancel:hover { border-color: #7c3aed; color: #7c3aed; }
+        .btn-cancel:hover { border-color: var(--ocean-600); color: var(--ocean-800); background-color: var(--ocean-100); }
 
-        /* Toast */
+        /* ── Toast ── */
         .toast-wrap { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; }
         .toast-item {
             display: flex; align-items: flex-start; gap: .75rem;
@@ -97,7 +126,7 @@
         .toast-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
         .toast-item.success .toast-icon { color: #10b981; }
         .toast-item.error   .toast-icon { color: #ef4444; }
-        .toast-title { font-weight: 700; font-size: .88rem; color: #111827; }
+        .toast-title { font-weight: 700; font-size: .88rem; color: var(--ds-heading); }
         .toast-msg   { font-size: .82rem; color: #6b7280; margin-top: 2px; }
         .toast-close { position: absolute; top: 8px; right: 10px; background: none; border: none; cursor: pointer; color: #9ca3af; font-size: .82rem; }
         .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 0 12px; animation: shrink 4s linear forwards; }
@@ -116,7 +145,7 @@
       <div class="row g-0" style="min-height: calc(100vh - 56px);">
         <%@ include file="sidebar.jsp" %>
         <main class="col p-4">
-    <div style="max-width: 620px;">
+    <div style="max-width: 620px; margin: 0 auto;">
 
         <%-- Hero header --%>
         <div class="page-hero">
@@ -209,12 +238,12 @@
                 </div>
 
                 <%-- Action buttons --%>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn-save flex-fill">
                         <i class="bi bi-check-circle"></i> Save Changes
                     </button>
                     <a href="${pageContext.request.contextPath}/customer?action=profile"
-                       class="btn-cancel flex-fill justify-content-center">
+                       class="btn-cancel flex-fill">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
                 </div>
