@@ -1,5 +1,5 @@
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,13 +8,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #f4f6f9; font-family: 'Inter', sans-serif; }
+        /* 1. Import Font Pretendard */
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+        /* 2. Ocean Palette Variables */
+        :root {
+            --ocean-900: #03045E;
+            --ocean-800: #023E8A;
+            --ocean-700: #0077B6;
+            --ocean-600: #0096C7;
+            --ocean-500: #00B4D8;
+            --ocean-400: #48CAE4;
+            --ocean-300: #90E0EF;
+            --ocean-200: #ADE8F4;
+            --ocean-100: #CAF0F8;
+            --ds-bg: #f4f7f9;
+            --ds-text: #292A2D;
+            --ds-heading: #171719;
+        }
+
+        body { 
+            background: var(--ds-bg); 
+            font-family: 'Pretendard', sans-serif !important; 
+            color: var(--ds-text);
+        }
 
         /* ── Page header ── */
         .page-hero {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            background: linear-gradient(135deg, var(--ocean-900), var(--ocean-800), var(--ocean-700));
             border-radius: 16px;
             padding: 28px;
             color: #fff;
@@ -24,6 +46,7 @@
             margin-bottom: 24px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 8px 24px rgba(3, 4, 94, 0.15);
         }
         .page-hero::after {
             content: '';
@@ -35,11 +58,12 @@
         }
         .hero-icon {
             width: 64px; height: 64px;
-            background: rgba(255,255,255,.2);
+            background: rgba(255,255,255,.15);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 28px;
             flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.3);
         }
         .page-hero h4    { font-weight: 700; margin-bottom: 2px; font-size: 1.25rem; }
         .page-hero small { opacity: .8; font-size: .87rem; }
@@ -49,7 +73,7 @@
             background: #fff;
             border-radius: 16px;
             border: none;
-            box-shadow: 0 2px 20px rgba(0,0,0,.07);
+            box-shadow: 0 4px 12px rgba(0,0,0,.04);
             padding: 2rem;
         }
         .tip-card { padding: 1.25rem 1.5rem; }
@@ -57,12 +81,12 @@
         .section-label {
             font-size: .75rem;
             font-weight: 700;
-            color: #9ca3af;
+            color: var(--ocean-700);
             text-transform: uppercase;
             letter-spacing: .6px;
             margin-bottom: 1rem;
             padding-bottom: .5rem;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px dashed var(--ocean-200);
         }
 
         /* ── Inputs ── */
@@ -83,8 +107,8 @@
             transition: border-color .2s, box-shadow .2s;
         }
         .field-wrap input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+            border-color: var(--ocean-600);
+            box-shadow: 0 0 0 3px rgba(0, 150, 199, 0.15);
             outline: none;
         }
         .field-wrap input.is-valid   { border-color: #10b981; }
@@ -96,7 +120,7 @@
             color: #9ca3af; cursor: pointer; font-size: .95rem;
             padding: 4px 6px; line-height: 1;
         }
-        .btn-eye:hover { color: #7c3aed; }
+        .btn-eye:hover { color: var(--ocean-600); }
         .form-label { font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: .35rem; }
 
         /* ── Strength bar ── */
@@ -113,40 +137,41 @@
             transition: width .3s ease, background .3s ease;
             width: 0%;
         }
-        .strength-label { font-size: .78rem; color: #9ca3af; margin-top: .3rem; }
+        .strength-label { font-size: .78rem; color: #9ca3af; margin-top: .3rem; font-weight: 500; }
 
         /* ── Match feedback ── */
-        .match-text { font-size: .78rem; margin-top: .3rem; }
+        .match-text { font-size: .78rem; margin-top: .3rem; font-weight: 500; }
 
         /* ── Buttons ── */
         .btn-save {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            background: linear-gradient(135deg, var(--ocean-800), var(--ocean-600));
             border: none; border-radius: 10px;
             color: #fff; font-weight: 600; font-size: .93rem;
             height: 44px; padding: 0 1.5rem;
-            display: inline-flex; align-items: center; gap: .4rem;
-            transition: opacity .2s, transform .15s; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+            transition: opacity .2s, transform .15s, box-shadow .2s; cursor: pointer;
         }
-        .btn-save:hover  { opacity: .9; }
+        .btn-save:hover  { opacity: .9; box-shadow: 0 4px 10px rgba(0, 119, 182, 0.3); }
         .btn-save:active { transform: scale(.98); }
+        
         .btn-cancel {
             border: 1.5px solid #e5e7eb; border-radius: 10px;
             background: #fff; color: #6b7280;
             font-weight: 600; font-size: .93rem;
             height: 44px; padding: 0 1.5rem;
-            display: inline-flex; align-items: center; gap: .4rem;
-            text-decoration: none; transition: border-color .2s, color .2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+            text-decoration: none; transition: border-color .2s, color .2s, background-color .2s;
         }
-        .btn-cancel:hover { border-color: #7c3aed; color: #7c3aed; }
+        .btn-cancel:hover { border-color: var(--ocean-600); color: var(--ocean-800); background-color: var(--ocean-100); }
 
         /* ── Tips card ── */
         .tip-list { list-style: none; padding: 0; margin: 0; }
         .tip-list li {
             display: flex; align-items: flex-start; gap: .6rem;
-            font-size: .83rem; color: #6b7280; margin-bottom: .5rem;
+            font-size: .85rem; color: #5A5C63; margin-bottom: .6rem;
         }
         .tip-list li:last-child { margin-bottom: 0; }
-        .tip-list li i { color: #7c3aed; margin-top: 2px; flex-shrink: 0; }
+        .tip-list li i { color: var(--ocean-600); margin-top: 2px; flex-shrink: 0; }
 
         /* ── Toast ── */
         .toast-wrap {
@@ -167,7 +192,7 @@
         .toast-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
         .toast-item.success .toast-icon { color: #10b981; }
         .toast-item.error   .toast-icon { color: #ef4444; }
-        .toast-title { font-weight: 700; font-size: .88rem; color: #111827; }
+        .toast-title { font-weight: 700; font-size: .88rem; color: var(--ds-heading); }
         .toast-msg   { font-size: .82rem; color: #6b7280; margin-top: 2px; }
         .toast-close {
             position: absolute; top: 8px; right: 10px;
@@ -194,7 +219,7 @@
       <div class="row g-0" style="min-height: calc(100vh - 56px);">
         <%@ include file="sidebar.jsp" %>
         <main class="col p-4">
-    <div style="max-width: 560px;">
+    <div style="max-width: 560px; margin: 0 auto;">
 
         <%-- Hero header --%>
         <div class="page-hero">
@@ -270,7 +295,7 @@
                         <i class="bi bi-arrow-repeat"></i> Update Password
                     </button>
                     <a href="${pageContext.request.contextPath}/customer?action=profile"
-                       class="btn-cancel flex-fill justify-content-center">
+                       class="btn-cancel flex-fill">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
                 </div>
@@ -280,8 +305,8 @@
 
         <%-- Tips card --%>
         <div class="tip-card">
-            <div class="fw-semibold text-dark mb-2" style="font-size:.88rem;">
-                <i class="bi bi-lightbulb me-1" style="color:#7c3aed;"></i>
+            <div class="fw-bold mb-2" style="font-size:.9rem; color: var(--ocean-900);">
+                <i class="bi bi-lightbulb-fill me-1" style="color: var(--ocean-500);"></i>
                 Password Tips
             </div>
             <ul class="tip-list">
@@ -327,7 +352,7 @@
             { pct: '20%',  bg: '#ef4444', label: 'Very Weak'  },
             { pct: '40%',  bg: '#f97316', label: 'Weak'       },
             { pct: '60%',  bg: '#eab308', label: 'Fair'       },
-            { pct: '80%',  bg: '#3b82f6', label: 'Strong'     },
+            { pct: '80%',  bg: '#0077B6', label: 'Strong'     }, // Updated to Ocean Blue
             { pct: '100%', bg: '#10b981', label: 'Very Strong' }
         ];
 
@@ -450,11 +475,8 @@
             const success = d.dataset.success.trim();
             const error   = d.dataset.error.trim();
             if (success) showToast('success', 'Password Updated!', success);
-            if (error)   showToast('error',   'Error',              error);
+            if (error)   showToast('error',   'Error',               error);
         });
     </script>
-        </main>
-      </div>
-    </div>
 </body>
 </html>

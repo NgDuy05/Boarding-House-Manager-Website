@@ -9,98 +9,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #f4f6f9; font-family: 'Inter', sans-serif; }
+        /* 1. Import Font Pretendard */
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+        /* 2. Ocean Palette Variables */
+        :root {
+            --ocean-900: #03045E;
+            --ocean-800: #023E8A;
+            --ocean-700: #0077B6;
+            --ocean-600: #0096C7;
+            --ocean-500: #00B4D8;
+            --ocean-400: #48CAE4;
+            --ocean-300: #90E0EF;
+            --ocean-200: #ADE8F4;
+            --ocean-100: #CAF0F8;
+            --ds-bg: #f4f7f9;
+            --ds-text: #292A2D;
+        }
+
+        body { 
+            background: var(--ds-bg); 
+            font-family: 'Pretendard', sans-serif !important; 
+            color: var(--ds-text);
+        }
 
         /* ── Hero ── */
         .page-hero {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: #fff; padding: 48px 0 56px; margin-bottom: -32px;
+            background: linear-gradient(135deg, var(--ocean-900), var(--ocean-800), var(--ocean-700));
+            color: #fff; 
+            padding: 48px 0 56px; 
+            margin-bottom: -32px;
+            box-shadow: 0 8px 24px rgba(3, 4, 94, 0.15);
         }
-        .page-hero h1 { font-weight: 700; font-size: 2rem; }
+        .page-hero h1 { font-weight: 800; font-size: 2rem; letter-spacing: -0.5px; }
 
         /* ── Filter bar ── */
         .filter-bar {
             background: #fff; border-radius: 50px;
             padding: 6px; display: inline-flex; gap: 4px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.09);
+            box-shadow: 0 4px 16px rgba(0,0,0,.06);
         }
         .filter-btn {
             border-radius: 50px; border: none;
-            padding: 8px 20px; font-weight: 600; font-size: .84rem;
+            padding: 8px 20px; font-weight: 700; font-size: .85rem;
             cursor: pointer; text-decoration: none;
             display: inline-flex; align-items: center; gap: .4rem;
             color: #6b7280; background: transparent; transition: all .2s;
         }
         .filter-btn:hover  { background: #f3f4f6; color: #374151; }
-        .filter-btn.active { background: linear-gradient(135deg,#4f46e5,#7c3aed); color: #fff; }
+        .filter-btn.active { 
+            background: linear-gradient(135deg, var(--ocean-800), var(--ocean-600)); 
+            color: #fff; 
+            box-shadow: 0 4px 10px rgba(0, 119, 182, 0.2);
+        }
 
         /* ── Notification cards ── */
         .notif-card {
             background: #fff; border-radius: 16px; border: none;
-            box-shadow: 0 2px 16px rgba(0,0,0,.07);
-            padding: 1.4rem 1.6rem;
-            transition: transform .18s, box-shadow .18s;
-            display: flex; gap: 1.2rem; align-items: flex-start;
+            box-shadow: 0 2px 16px rgba(0,0,0,.04);
+            padding: 1.5rem 1.75rem;
+            transition: transform .2s ease, box-shadow .2s ease;
+            display: flex; gap: 1.25rem; align-items: flex-start;
         }
         .notif-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(0,0,0,.11);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 119, 182, 0.08);
         }
 
         .notif-icon-wrap {
-            width: 48px; height: 48px; flex-shrink: 0;
+            width: 52px; height: 52px; flex-shrink: 0;
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
         }
-        .icon-broadcast { background: #ede9fe; color: #7c3aed; }
-        .icon-targeted  { background: #dbeafe; color: #1d4ed8; }
+        .icon-broadcast { background: var(--ocean-100); color: var(--ocean-900); }
+        .icon-targeted  { background: rgba(0, 119, 182, 0.1); color: var(--ocean-800); }
 
         .notif-body { flex: 1; min-width: 0; }
         .notif-title {
-            font-weight: 700; font-size: 1rem; color: #1e1b4b;
-            margin-bottom: .25rem;
+            font-weight: 800; font-size: 1.05rem; color: var(--ocean-900);
+            margin-bottom: .35rem;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .notif-preview {
-            font-size: .85rem; color: #6b7280;
+            font-size: .9rem; color: #5A5C63;
             display: -webkit-box;
             -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-            overflow: hidden; margin-bottom: .6rem;
+            overflow: hidden; margin-bottom: .75rem;
+            line-height: 1.5;
         }
         .notif-meta {
             display: flex; align-items: center; gap: 1rem;
             flex-wrap: wrap;
         }
-        .notif-meta span { font-size: .78rem; color: #9ca3af; display: flex; align-items: center; gap: .3rem; }
-        .badge-broadcast { background: #ede9fe; color: #6d28d9; }
-        .badge-targeted  { background: #dbeafe; color: #1e40af; }
+        .notif-meta span { font-size: .8rem; color: #9ca3af; display: flex; align-items: center; gap: .3rem; font-weight: 500; }
+        
         .badge-pill {
-            border-radius: 20px; padding: 2px 10px;
-            font-size: .73rem; font-weight: 700;
+            border-radius: 20px; padding: 4px 12px;
+            font-size: .75rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
+        .badge-broadcast { background: var(--ocean-100); color: var(--ocean-900); }
+        .badge-targeted  { background: rgba(0, 119, 182, 0.1); color: var(--ocean-800); }
 
         .notif-action {
             flex-shrink: 0; align-self: center;
         }
         .btn-read {
             display: inline-flex; align-items: center; gap: .3rem;
-            font-size: .82rem; font-weight: 600; color: #7c3aed;
-            text-decoration: none; padding: 6px 14px;
-            border: 1.5px solid #ede9fe; border-radius: 10px;
-            transition: all .18s; white-space: nowrap;
+            font-size: .85rem; font-weight: 700; color: var(--ocean-700);
+            text-decoration: none; padding: 8px 16px;
+            border: 1.5px solid var(--ocean-200); border-radius: 10px;
+            transition: all .2s; white-space: nowrap;
         }
         .btn-read:hover {
-            background: #ede9fe; color: #6d28d9; border-color: #ddd6fe;
+            background: var(--ocean-100); color: var(--ocean-900); border-color: var(--ocean-300);
         }
 
-        .empty-state { text-align: center; padding: 4rem 1rem; color: #9ca3af; }
-        .empty-state i { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+        .empty-state { text-align: center; padding: 5rem 1rem; color: #9ca3af; }
+        .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; color: var(--ocean-200); }
+        .empty-state h5 { color: var(--ocean-800); font-weight: 700; }
 
-        .results-info { font-size: .85rem; color: #9ca3af; margin-bottom: 1.25rem; }
-        .results-info strong { color: #4f46e5; }
+        .results-info { font-size: .88rem; color: #6b7280; margin-bottom: 1.25rem; font-weight: 500; }
+        .results-info strong { color: var(--ocean-700); font-weight: 700; }
+
+        /* Pagination */
+        .pagination .page-link { color: var(--ocean-800); border-color: #dee2e6; font-weight: 600; }
+        .pagination .page-item.active .page-link { background-color: var(--ocean-800); border-color: var(--ocean-800); color: white; }
+        .pagination .page-link:hover { background-color: var(--ocean-100); color: var(--ocean-900); }
     </style>
 </head>
 <body>
@@ -117,9 +154,9 @@
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.5)">
                     <li class="breadcrumb-item">
-                        <a href="${pageContext.request.contextPath}/" class="text-white text-opacity-75">Home</a>
+                        <a href="${pageContext.request.contextPath}/" class="text-white text-opacity-75 text-decoration-none">Home</a>
                     </li>
-                    <li class="breadcrumb-item active text-white">Notifications</li>
+                    <li class="breadcrumb-item active text-white fw-semibold">Notifications</li>
                 </ol>
             </nav>
             <h1><i class="bi bi-bell-fill me-2"></i>Notifications</h1>
@@ -127,7 +164,7 @@
         </div>
     </div>
 
-    <div class="container pb-5" style="padding-top: 48px;">
+    <div class="container pb-5" style="padding-top: 48px; max-width: 900px;">
 
         <%-- Filter bar --%>
         <div class="d-flex justify-content-center mb-4">
@@ -135,13 +172,13 @@
                 <a href="${pageContext.request.contextPath}/notification?action=publicList"
                    class="filter-btn ${empty typeFilter ? 'active' : ''}">
                     <i class="bi bi-grid"></i> All
-                    <span style="background:#e5e7eb;color:#374151;border-radius:20px;padding:1px 8px;font-size:.73rem">
+                    <span style="background:rgba(255,255,255,0.2); color:inherit; border-radius:20px; padding:2px 8px; font-size:.75rem; margin-left: 4px;">
                         ${totalItems}
                     </span>
                 </a>
                 <a href="${pageContext.request.contextPath}/notification?action=publicList&type=broadcast"
                    class="filter-btn ${typeFilter == 'broadcast' ? 'active' : ''}">
-                    <i class="bi bi-megaphone"></i> General
+                    <i class="bi bi-megaphone-fill"></i> General
                 </a>
                 <a href="${pageContext.request.contextPath}/notification?action=publicList&type=targeted"
                    class="filter-btn ${typeFilter == 'targeted' ? 'active' : ''}">
@@ -151,7 +188,7 @@
         </div>
 
         <%-- Results info --%>
-        <div class="results-info">
+        <div class="results-info text-center text-md-start">
             <strong>${totalItems}</strong>
             notification<c:if test="${totalItems != 1}">s</c:if>
             <c:if test="${typeFilter == 'broadcast'}"> &middot; general only</c:if>
@@ -162,7 +199,7 @@
         <c:choose>
             <c:when test="${empty notifications}">
                 <div class="empty-state">
-                    <i class="bi bi-bell-slash"></i>
+                    <i class="bi bi-bell-slash-fill"></i>
                     <h5>No notifications</h5>
                     <p class="mb-0">
                         <c:choose>
@@ -192,12 +229,12 @@
                                         <c:choose>
                                             <c:when test="${n.broadcast}">
                                                 <span class="badge-pill badge-broadcast">
-                                                    <i class="bi bi-megaphone me-1"></i>General
+                                                    <i class="bi bi-megaphone-fill me-1"></i>General
                                                 </span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="badge-pill badge-targeted">
-                                                    <i class="bi bi-person me-1"></i>For You
+                                                    <i class="bi bi-person-fill me-1"></i>For You
                                                 </span>
                                             </c:otherwise>
                                         </c:choose>
@@ -210,7 +247,7 @@
                                     <%-- Timestamp --%>
                                     <c:if test="${not empty n.createdAt}">
                                         <span>
-                                            <i class="bi bi-clock"></i>
+                                            <i class="bi bi-clock-fill"></i>
                                             <fmt:formatDate value="${n.createdAt}" pattern="MMM dd, yyyy HH:mm"/>
                                         </span>
                                     </c:if>
@@ -232,8 +269,8 @@
 
         <%-- Pagination --%>
         <c:if test="${totalPages > 1}">
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="text-muted small">
+            <div class="d-flex justify-content-between align-items-center mt-5">
+                <div class="text-muted small fw-semibold">
                     Showing <strong>${(currentPage - 1) * pageSize + 1}</strong>–<strong>${(currentPage - 1) * pageSize + notifications.size()}</strong>
                     of <strong>${totalItems}</strong>
                 </div>
