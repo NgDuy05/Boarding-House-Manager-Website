@@ -248,4 +248,18 @@ public class FacilityDAO extends DBContext {
         } catch (SQLException ignored) {}
         return f;
     }
+    // ===============================
+    // UPDATE MONTHLY PRICE ONLY
+    // ===============================
+    public void updateMonthlyPrice(int facilityId, java.math.BigDecimal price) {
+        String sql = "UPDATE facility SET monthly_price = ? WHERE facility_id = ?";
+        try {
+            java.sql.PreparedStatement st = connection.prepareStatement(sql);
+            st.setBigDecimal(1, price);
+            st.setInt(2, facilityId);
+            st.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

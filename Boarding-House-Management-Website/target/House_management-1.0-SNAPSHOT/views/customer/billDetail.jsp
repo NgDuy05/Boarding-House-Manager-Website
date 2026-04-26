@@ -128,6 +128,24 @@
 
         .summary-label { color: #5A5C63; font-size: 13px; font-weight: 500; margin-bottom: 4px; }
         .summary-value { color: var(--ocean-900); font-weight: 700; font-size: 16px; }
+
+        /* Final Bill banner */
+        .final-bill-banner {
+            background: linear-gradient(135deg, #fff5f5, #fff0f0);
+            border: 1.5px solid #f5c2c7;
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .final-bill-banner .icon { font-size: 1.6rem; color: #dc3545; flex-shrink: 0; margin-top: 2px; }
+        .final-bill-banner .title { font-weight: 700; color: #842029; font-size: 15px; margin-bottom: 4px; }
+        .final-bill-banner .desc  { color: #6c1f26; font-size: 13px; line-height: 1.6; }
+        /* Note row in bill items */
+        .note-row td { background: rgba(255,243,205,.5) !important; color: #664d03 !important;
+                       font-style: italic; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -150,6 +168,27 @@
       </c:if>
 
       <c:if test="${not empty bill}">
+
+        <%-- ── Final Bill banner (only displays when contract is terminated) ── --%>
+        <c:if test="${isFinalBill}">
+        <div class="final-bill-banner">
+            <div class="icon"><i class="bi bi-flag-fill"></i></div>
+            <div>
+                <div class="title">Final Settlement Invoice</div>
+                <div class="desc">
+                    Your contract has ended. This is the final invoice covering
+                    <strong>utilities</strong> and <strong>services</strong> incurred during your move-out month.
+                    Next month's room rent was paid in advance — it is not charged again here.<br>
+                    Please pay before the due date: <strong>${bill.dueDate}</strong>.
+                    <c:if test="${not empty terminationReason}">
+                        <br><span class="mt-1 d-inline-block">
+                            <i class="bi bi-chat-left-text me-1"></i>Reason: <em>${terminationReason}</em>
+                        </span>
+                    </c:if>
+                </div>
+            </div>
+        </div>
+        </c:if>
 
         <%-- ── Header card (Invoice Summary) ── --%>
         <div class="card mb-4">
@@ -243,6 +282,9 @@
                                   <c:when test="${item.sourceType eq 'service'}">
                                     <i class="bi bi-tools me-2 fs-6"></i>Services
                                   </c:when>
+                                  <c:when test="${item.sourceType eq 'note'}">
+                                    <i class="bi bi-sticky-fill me-2 fs-6"></i>Notes
+                                  </c:when>
                                   <c:otherwise>
                                     <i class="bi bi-plus-circle-fill me-2 fs-6"></i>Other
                                   </c:otherwise>
@@ -250,18 +292,30 @@
                               </td>
                             </tr>
                           </c:if>
-                          <tr>
-                            <td class="ps-4 text-dark" style="font-weight: 500;">${item.description}</td>
-                            <td class="text-center text-muted">
-                              <fmt:formatNumber value="${item.quantity}" maxFractionDigits="2"/>
-                            </td>
-                            <td class="text-end text-muted">
-                              <fmt:formatNumber value="${item.unitPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
-                            </td>
-                            <td class="text-end fw-bold pe-4" style="color: var(--ocean-800);">
-                              <fmt:formatNumber value="${item.quantity * item.unitPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
-                            </td>
-                          </tr>
+                          <c:choose>
+                            <c:when test="${item.sourceType eq 'note'}">
+                              <%-- Note row for termination reason — no charge --%>
+                              <tr class="note-row">
+                                <td colspan="4" class="ps-4">
+                                    <i class="bi bi-sticky-fill me-2"></i>${item.description}
+                                </td>
+                              </tr>
+                            </c:when>
+                            <c:otherwise>
+                              <tr>
+                                <td class="ps-4 text-dark" style="font-weight: 500;">${item.description}</td>
+                                <td class="text-center text-muted">
+                                  <fmt:formatNumber value="${item.quantity}" maxFractionDigits="2"/>
+                                </td>
+                                <td class="text-end text-muted">
+                                  <fmt:formatNumber value="${item.unitPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
+                                </td>
+                                <td class="text-end fw-bold pe-4" style="color: var(--ocean-800);">
+                                  <fmt:formatNumber value="${item.quantity * item.unitPrice}" groupingUsed="true" maxFractionDigits="0"/>&#8363;
+                                </td>
+                              </tr>
+                            </c:otherwise>
+                          </c:choose>
                         </c:forEach>
                       </tbody>
                       <tfoot>

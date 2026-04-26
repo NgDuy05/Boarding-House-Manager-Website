@@ -122,8 +122,16 @@ public class ContractDAO extends DBContext {
         }
     }
 
-    // 🔹 Kết thúc hợp đồng (terminate)
+    // 🔹 Kết thúc hợp đồng — backward-compat overload
     public void terminate(int contractId, int roomId, String reason) {
+        terminate(contractId, roomId, reason, -1);
+    }
+
+    /**
+     * Terminate hợp đồng.
+     * @param finalBillId ID final bill vừa tạo (được GIỮ LẠI). Truyền -1 nếu không có.
+     */
+    public void terminate(int contractId, int roomId, String reason, int finalBillId) {
         String sql = "UPDATE contract "
                 + "SET status = 'terminated', termination_reason = ?, terminated_at = GETDATE() "
                 + "WHERE contract_id = ?";
@@ -131,43 +139,42 @@ public class ContractDAO extends DBContext {
         try {
             connection.setAutoCommit(false);
 
+            // 1. Cập nhật trạng thái + lưu lý do hủy
             try (PreparedStatement st = connection.prepareStatement(sql)) {
-                st.setString(1, reason);
+                st.setString(1, reason != null ? reason : "");
                 st.setInt(2, contractId);
                 st.executeUpdate();
             }
 
-            // Hủy tất cả bills của contract này (soft delete)
-            String cancelBills = "UPDATE bill SET is_deleted = 1 WHERE contract_id = ? AND is_deleted = 0";
-            try (PreparedStatement st3 = connection.prepareStatement(cancelBills)) {
-                st3.setInt(1, contractId);
-                st3.executeUpdate();
+            // 2. Soft-delete các bills pending — GIỮ LẠI final bill
+            String cancelBills;
+            if (finalBillId > 0) {
+                cancelBills = "UPDATE bill SET is_deleted = 1 "
+                        + "WHERE contract_id = ? AND is_deleted = 0 "
+                        + "AND status = 'pending' AND bill_id <> " + finalBillId;
+            } else {
+                cancelBills = "UPDATE bill SET is_deleted = 1 "
+                        + "WHERE contract_id = ? AND is_deleted = 0 AND status = 'pending'";
+            }
+            try (PreparedStatement st = connection.prepareStatement(cancelBills)) {
+                st.setInt(1, contractId);
+                st.executeUpdate();
             }
 
-            // Trả phòng về available
-            String updateRoom = "UPDATE room "
-                    + "SET status = 'available' "
-                    + "WHERE room_id = ?";
-            try (PreparedStatement st2 = connection.prepareStatement(updateRoom)) {
-                st2.setInt(1, roomId);
-                st2.executeUpdate();
+            // 3. Trả phòng về available
+            String updateRoom = "UPDATE room SET status = 'available' WHERE room_id = ?";
+            try (PreparedStatement st = connection.prepareStatement(updateRoom)) {
+                st.setInt(1, roomId);
+                st.executeUpdate();
             }
 
             connection.commit();
 
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+            try { connection.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             e.printStackTrace();
         } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
         }
     }
 

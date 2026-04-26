@@ -75,4 +75,22 @@ public class RoomCategoryDAO extends DBContext {
         rc.setPricePerDay(ppd != null ? ppd : BigDecimal.ZERO);
         return rc;
     }
+    // ===============================
+    // UPDATE ROOM CATEGORY (name, description, base_price, price_per_day)
+    // ===============================
+    public void updateCategory(RoomCategory rc) {
+        String sql = "UPDATE room_category " +
+                     "SET category_name = ?, description = ?, base_price = ?, price_per_day = ? " +
+                     "WHERE category_id = ?";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, rc.getCategoryName());
+            st.setString(2, rc.getDescription());
+            st.setBigDecimal(3, rc.getBasePrice());
+            st.setBigDecimal(4, rc.getPricePerDay());
+            st.setInt(5, rc.getCategoryId());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

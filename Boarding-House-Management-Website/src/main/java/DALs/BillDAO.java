@@ -65,13 +65,13 @@ public class BillDAO extends DBContext {
 
         List<Bill> list = new ArrayList<>();
 
-        // contract has no user_id column — link through contract_user junction table
-        // Only get bills from active contracts
+        // Lấy bills từ cả active lẫn terminated contract (để hiện final bill)
         String sql = "SELECT b.* "
                 + "FROM bill b "
                 + "JOIN contract_user cu ON b.contract_id = cu.contract_id "
                 + "JOIN contract c ON b.contract_id = c.contract_id "
-                + "WHERE cu.user_id = ? AND b.is_deleted = 0 AND c.status = 'active' "
+                + "WHERE cu.user_id = ? AND b.is_deleted = 0 "
+                + "AND c.status IN ('active', 'terminated') "
                 + "ORDER BY b.bill_id DESC";
 
         try (PreparedStatement st = connection.prepareStatement(sql)) {

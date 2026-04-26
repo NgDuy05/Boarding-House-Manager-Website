@@ -10,10 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        /* 1. Import Font Pretendard */
         @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
-        /* 2. Ocean Palette Variables */
         :root {
             --ocean-900: #03045E;
             --ocean-800: #023E8A;
@@ -34,7 +32,6 @@
             color: var(--ds-text);
         }
 
-        /* 3. Page Header Gradient */
         .page-header {
             background: linear-gradient(135deg, var(--ocean-900), var(--ocean-800), var(--ocean-700));
             color: white;
@@ -44,7 +41,6 @@
             box-shadow: 0 8px 24px rgba(3, 4, 94, 0.15);
         }
 
-        /* 4. Table Styling */
         .table-card { 
             border-radius: 16px; 
             border: none; 
@@ -64,7 +60,6 @@
         .table tbody tr:hover { background-color: rgba(0, 119, 182, 0.05) !important; }
         .table td { padding: 14px 16px; vertical-align: middle; }
 
-        /* 5. Semantic Badges */
         .status-badge {
             font-size: 12px;
             padding: 6px 14px;
@@ -73,10 +68,16 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .badge-paid { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
-        .badge-unpaid { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .badge-paid    { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .badge-unpaid  { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* 6. Custom Buttons */
+        /* ── Final Bill ── */
+        .badge-final   { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7;
+                         font-size: 10px; padding: 3px 8px; border-radius: 20px;
+                         font-weight: 700; letter-spacing: .4px; }
+        .final-row     { background-color: rgba(220,53,69,.04) !important; }
+        .final-row:hover { background-color: rgba(220,53,69,.09) !important; }
+
         .btn-outline-ocean {
             color: var(--ocean-600);
             border-color: var(--ocean-500);
@@ -102,7 +103,6 @@
             box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
         }
 
-        /* 7. Pagination */
         .pagination .page-link { color: var(--ocean-800); border-color: #dee2e6; font-weight: 500; }
         .pagination .page-item.active .page-link { background-color: var(--ocean-800); border-color: var(--ocean-800); color: white; font-weight: 700; }
         .pagination .page-link:hover { background-color: var(--ocean-100); color: var(--ocean-900); }
@@ -116,7 +116,6 @@
     <%@ include file="sidebar.jsp" %>
     <main class="col p-4">
     
-    <%-- Themed Header --%>
     <div class="page-header d-flex justify-content-between align-items-center">
         <div>
             <h4 class="fw-bold mb-1"><i class="bi bi-receipt me-2"></i>My Bills</h4>
@@ -151,9 +150,17 @@
                             </c:when>
                             <c:otherwise>
                                 <c:forEach var="b" items="${bills}">
-                                    <tr>
+                                    <c:set var="isFinal" value="${billContractStatus[b.billId] == 'terminated'}" />
+                                    <tr class="${isFinal ? 'final-row' : ''}">
                                         <td class="ps-4 text-muted small fw-semibold">#${b.billId}</td>
-                                        <td class="fw-semibold" style="color: var(--ocean-900);">${b.period}</td>
+                                        <td class="fw-semibold" style="color: var(--ocean-900);">
+                                            ${b.period}
+                                            <c:if test="${isFinal}">
+                                                <span class="badge-final ms-1">
+                                                    <i class="bi bi-flag-fill me-1"></i>Final Bill
+                                                </span>
+                                            </c:if>
+                                        </td>
                                         <td class="text-muted small">${b.dueDate}</td>
                                         <td class="text-end fw-bold" style="color: var(--ocean-800); font-size: 15px;">
                                             <c:choose>
@@ -208,7 +215,6 @@
             </div>
         </div>
         
-        <%-- Pagination --%>
         <c:if test="${totalPages > 1}">
             <div class="card-footer bg-white d-flex justify-content-between align-items-center px-4 py-3 border-top">
                 <div class="text-muted small">

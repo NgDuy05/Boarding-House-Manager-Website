@@ -5,6 +5,7 @@ import DALs.ContractDAO;
 import DALs.PriceDAO;
 import Models.Bill;
 import Models.BillItem;
+import Models.Contract;
 import Models.PriceCategory;
 import Models.User;
 
@@ -82,6 +83,14 @@ public class BillServlet extends HttpServlet {
         }
         User user = (User) session.getAttribute("user");
         List<Bill> all = billDAO.getBillByTenant(user.getUserId());
+        // Đính kèm contractStatus vào từng bill để JSP hiển thị Final Bill badge
+        // Tạo map billId -> contractStatus để JSP hiện Final Bill badge
+        java.util.Map<Integer,String> billContractStatus = new java.util.HashMap<>();
+        for (Bill b : all) {
+            Contract c = contractDAO.getById(b.getContractId());
+            if (c != null) billContractStatus.put(b.getBillId(), c.getStatus());
+        }
+        request.setAttribute("billContractStatus", billContractStatus);
         applyPaginationAttrs(request, all, "bills");
         request.getRequestDispatcher("/views/customer/bills.jsp").forward(request, response);
     }
@@ -307,10 +316,16 @@ public class BillServlet extends HttpServlet {
         int  billId = Integer.parseInt(request.getParameter("id"));
         Bill bill   = billDAO.getBillById(billId);
 
-        request.setAttribute("bill", bill);
         if (bill != null) {
             request.setAttribute("billItems", billDAO.getBillItemsByBillId(billId));
+            // Lấy trạng thái contract để JSP biết đây có phải Final Bill không
+            Contract contract = contractDAO.getById(bill.getContractId());
+            if (contract != null) {
+                request.setAttribute("isFinalBill", "terminated".equals(contract.getStatus()));
+                request.setAttribute("terminationReason", contract.getTerminationReason());
+            }
         }
+        request.setAttribute("bill", bill);
 
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;

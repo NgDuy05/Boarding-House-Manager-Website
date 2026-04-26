@@ -4,16 +4,22 @@ import DALs.BillDAO;
 import DALs.ContractDAO;
 import DALs.DepositDAO;
 import DALs.FacilityDAO;
+import DALs.PriceDAO;
 import DALs.RoomDAO;
+import DALs.ServiceDAO;
+import DALs.UtilityDAO;
 import DALs.UserDAO;
 import Models.Bill;
+import Models.BillItem;
 import Models.Contract;
 import Models.ContractTenant;
 import Models.ContractUser;
 import Models.DepositTransaction;
 import Models.Facility;
 import Models.Room;
+import Models.ServiceUsage;
 import Models.User;
+import Models.UtilityUsage;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -36,6 +42,9 @@ public class ContractServlet extends HttpServlet {
     private BillDAO     billDAO;
     private FacilityDAO facilityDAO;
     private DepositDAO  depositDAO;
+    private UtilityDAO  utilityDAO;
+    private ServiceDAO  serviceDAO;
+    private PriceDAO    priceDAO;
 
     private static final int PAGE_SIZE = 10;
 
@@ -47,6 +56,9 @@ public class ContractServlet extends HttpServlet {
         billDAO     = new BillDAO();
         facilityDAO = new FacilityDAO();
         depositDAO  = new DepositDAO();
+        utilityDAO  = new UtilityDAO();
+        serviceDAO  = new ServiceDAO();
+        priceDAO    = new PriceDAO();
     }
 
     // =====================================================================
@@ -512,18 +524,17 @@ public class ContractServlet extends HttpServlet {
     }
 
     // =====================================================================
-    // ADMIN – TERMINATE
+    // ADMIN – TERMINATE  (với final bill tự động)
     // =====================================================================
     private void terminateContract(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         if (!isAdminOrStaff(request)) { redirect401(request, response); return; }
 
-        int contractId = Integer.parseInt(request.getParameter("id"));
-        int roomId     = Integer.parseInt(request.getParameter("roomId"));
-        String reason  = request.getParameter("reason");
+        int    contractId = Integer.parseInt(request.getParameter("id"));
+        int    roomId     = Integer.parseInt(request.getParameter("roomId"));
+        String reason     = request.getParameter("reason");
         if (reason == null) reason = "";
 
-        // Get contract to check end_date
         Contract contract = contractDAO.getDetailById(contractId);
         if (contract == null) {
             flash(request, "contractError", "Contract not found.");
@@ -531,24 +542,32 @@ public class ContractServlet extends HttpServlet {
             return;
         }
 
-        // Terminate the contract
-        contractDAO.terminate(contractId, roomId, reason);
+        // ── Ngày rời đi (moveOutDate) do admin nhập, mặc định = hôm nay ──
+        String moveOutStr = request.getParameter("moveOutDate");
+        LocalDate moveOutDate;
+        try {
+            moveOutDate = (moveOutStr != null && !moveOutStr.isEmpty())
+                    ? LocalDate.parse(moveOutStr)
+                    : LocalDate.now();
+        } catch (Exception e) {
+            moveOutDate = LocalDate.now();
+        }
 
-        // Get current user for deposit transaction
+        // ── Tạo Final Bill (utility + service của tháng rời) ──
+        int finalBillId = buildFinalBill(contract, moveOutDate, reason);
+
+        // ── Terminate hợp đồng (giữ lại final bill, xóa các pending bill khác) ──
+        contractDAO.terminate(contractId, roomId, reason, finalBillId);
+
+        // ── Xử lý cọc ──
         User currentUser = currentUser(request);
         int createdBy = (currentUser != null) ? currentUser.getUserId() : 1;
-
-        // Check deposit balance
         BigDecimal depositBalance = depositDAO.getBalance(contractId);
-
-        // Determine termination type and handle deposit
         LocalDate today = LocalDate.now();
-        String terminationType;
         String message;
 
         if (contract.getEndDate() != null && !contract.getEndDate().isAfter(today)) {
-            // Contract fulfilled (reached end date) - refund full deposit
-            terminationType = "fulfilled";
+            // Hết hạn đúng hạn → hoàn cọc
             if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
                 DepositTransaction refund = new DepositTransaction();
                 refund.setContractId(contractId);
@@ -558,24 +577,141 @@ public class ContractServlet extends HttpServlet {
                 refund.setCreatedBy(createdBy);
                 depositDAO.insert(refund);
             }
-            message = "Contract #" + contractId + " has been terminated (fulfilled). Deposit refunded.";
+            message = "Contract #" + contractId + " terminated (fulfilled). Deposit refunded.";
         } else {
-            // Early termination - keep the deposit as deduction
-            terminationType = "early";
+            // Trước hạn → giữ cọc
             if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
                 DepositTransaction deduction = new DepositTransaction();
                 deduction.setContractId(contractId);
                 deduction.setAmount(depositBalance);
                 deduction.setTransactionType(DepositTransaction.TYPE_DEDUCTION);
-                deduction.setNote("Khong hoan tra coc do chấm dứt trước hạn. Ly do: " + reason);
+                deduction.setNote("Khong hoan tra coc do cham dut truoc han. Ly do: " + reason);
                 deduction.setCreatedBy(createdBy);
                 depositDAO.insert(deduction);
             }
-            message = "Contract #" + contractId + " has been terminated (early). Deposit retained.";
+            message = "Contract #" + contractId + " terminated (early). Deposit retained.";
+        }
+
+        if (finalBillId > 0) {
+            message += " Final bill #" + finalBillId + " created (utility + service tháng "
+                    + moveOutDate.getMonthValue() + "/" + moveOutDate.getYear() + ").";
+        } else if (finalBillId == -2) {
+            message += " (Final bill đã tồn tại cho kỳ này.)";
         }
 
         flash(request, "contractSuccess", message);
         response.sendRedirect(request.getContextPath() + "/contract?action=list");
+    }
+
+    /**
+     * Tạo final bill khi hủy hợp đồng.
+     *
+     * NGUYÊN LÝ VẬN HÀNH:
+     *  - Tháng N: thu tiền phòng tháng N+1 (advance) + điện/nước/service của tháng N
+     *  - Khi rời vào tháng N: tiền phòng tháng N+1 đã thu rồi → KHÔNG thu lại.
+     *    Chỉ cần thanh toán: điện/nước + service còn unbilled trong tháng N.
+     *
+     * @return billId nếu tạo thành công, -1 nếu lỗi, -2 nếu bill kỳ này đã tồn tại,
+     *         0 nếu không có gì để tính (không tạo bill trống)
+     */
+    private int buildFinalBill(Contract contract, LocalDate moveOutDate, String terminationReason) {
+        int contractId  = contract.getContractId();
+        int roomId      = contract.getRoomId();
+
+        // Kỳ thanh toán = tháng của ngày rời (luôn lấy ngày 1 theo constraint DB)
+        LocalDate periodStart = moveOutDate.withDayOfMonth(1);
+        LocalDate periodEnd   = moveOutDate.withDayOfMonth(moveOutDate.lengthOfMonth());
+
+        // Kiểm tra bill kỳ này đã tồn tại chưa
+        if (billDAO.existsByContractAndPeriod(contractId, periodStart)) {
+            return -2;
+        }
+
+        List<BillItem> items            = new java.util.ArrayList<>();
+        List<Integer>  utilityUsageIds  = new java.util.ArrayList<>();
+        List<Integer>  serviceUsageIds  = new java.util.ArrayList<>();
+        BigDecimal     total            = BigDecimal.ZERO;
+
+        // ── 1. Điện / nước (utility_usage chưa billed trong kỳ) ──
+        List<UtilityUsage> usages = utilityDAO.getUnbilledByRoomAndPeriod(roomId, periodStart);
+        for (UtilityUsage uu : usages) {
+            int consumption = uu.getConsumption();
+            if (consumption <= 0) continue;
+
+            BigDecimal rate = utilityDAO.getPriceAtDate(uu.getUtilityId(), periodStart);
+            BigDecimal cons = BigDecimal.valueOf(consumption);
+            BigDecimal line = cons.multiply(rate);
+
+            int catId = priceDAO.getCategoryIdByUtilityName(uu.getUtilityName());
+            if (catId <= 0) catId = priceDAO.getCategoryIdByCode("ELECTRICITY");
+
+            BillItem item = new BillItem();
+            item.setCategoryId(catId);
+            item.setDescription(uu.getUtilityName()
+                    + ": " + uu.getOldValue() + " → " + uu.getNewValue()
+                    + " = " + consumption + " " + uu.getUnit()
+                    + " x " + rate.toPlainString() + "đ");
+            item.setQuantity(cons);
+            item.setUnitPrice(rate);
+            item.setSourceType("utility");
+            item.setSourceId(uu.getUsageId());
+            items.add(item);
+            total = total.add(line);
+            utilityUsageIds.add(uu.getUsageId());
+        }
+
+        // ── 2. Service đã approved, chưa billed trong kỳ ──
+        List<ServiceUsage> services =
+                serviceDAO.getUnbilledApprovedByContractAndPeriod(contractId, periodStart, periodEnd);
+        for (ServiceUsage su : services) {
+            BigDecimal price = su.getUnitPrice() != null ? su.getUnitPrice() : BigDecimal.ZERO;
+            BigDecimal qty   = su.getQuantity()  != null ? su.getQuantity()  : BigDecimal.ONE;
+            BigDecimal line  = qty.multiply(price);
+
+            int catId = priceDAO.getCategoryIdByCode("SERVICE");
+
+            String requester = su.getRequesterName() != null ? su.getRequesterName() : "Không rõ";
+            BillItem item = new BillItem();
+            item.setCategoryId(catId);
+            item.setDescription(su.getServiceName()
+                    + " x " + qty.toPlainString()
+                    + " (ngày " + su.getUsageDate() + " - Y/c: " + requester + ")");
+            item.setQuantity(qty);
+            item.setUnitPrice(price);
+            item.setSourceType("service");
+            item.setSourceId(su.getUsageId());
+            items.add(item);
+            total = total.add(line);
+            serviceUsageIds.add(su.getUsageId());
+        }
+
+        // ── Thêm dòng ghi chú lý do hủy (nếu có) — không tính tiền ──
+        if (terminationReason != null && !terminationReason.isBlank()) {
+            int noteCatId = priceDAO.getCategoryIdByCode("SERVICE"); // dùng category gần nhất
+            BillItem noteItem = new BillItem();
+            noteItem.setCategoryId(noteCatId);
+            noteItem.setDescription("📝 Lý do hủy hợp đồng: " + terminationReason.trim());
+            noteItem.setQuantity(BigDecimal.ZERO);
+            noteItem.setUnitPrice(BigDecimal.ZERO);
+            noteItem.setSourceType("note");
+            items.add(noteItem);
+            // total không thay đổi (0 * 0 = 0)
+        }
+
+        // Không tạo bill trống (chỉ có note mà không có dòng tiền thực → không tạo)
+        boolean hasRealItem = items.stream()
+                .anyMatch(i -> i.getUnitPrice() != null && i.getUnitPrice().compareTo(BigDecimal.ZERO) > 0);
+        if (!hasRealItem) return 0;
+
+        // ── Tạo bill ──
+        Bill bill = new Bill();
+        bill.setContractId(contractId);
+        bill.setPeriod(periodStart);
+        bill.setDueDate(moveOutDate.plusDays(3)); // hạn thanh toán 3 ngày sau ngày rời
+        bill.setTotalAmount(total);
+        bill.setStatus("pending");
+
+        return billDAO.insertBillWithItems(bill, items, utilityUsageIds, serviceUsageIds);
     }
 
     // =====================================================================
@@ -654,21 +790,31 @@ public class ContractServlet extends HttpServlet {
             return;
         }
 
-        // Run the standard termination logic (status → terminated, room freed, deposit handled)
-        contractDAO.terminate(contractId, contract.getRoomId(), "Cancellation approved by admin (customer requested)");
+        // Ngày rời = hôm nay (hoặc admin có thể truyền qua param)
+        String moveOutStr = request.getParameter("moveOutDate");
+        LocalDate moveOutDate;
+        try {
+            moveOutDate = (moveOutStr != null && !moveOutStr.isEmpty())
+                    ? LocalDate.parse(moveOutStr)
+                    : LocalDate.now();
+        } catch (Exception e) {
+            moveOutDate = LocalDate.now();
+        }
 
-        // Get current user for deposit transaction
+        // Tạo final bill trước khi terminate
+        String cancelReason = "Cancellation approved by admin (customer requested)";
+        int finalBillId = buildFinalBill(contract, moveOutDate, cancelReason);
+
+        // Giữ lại final bill, xóa pending bills khác
+        contractDAO.terminate(contractId, contract.getRoomId(), cancelReason, finalBillId);
+
         User currentUser = currentUser(request);
         int createdBy = (currentUser != null) ? currentUser.getUserId() : 1;
-
-        // Check deposit balance
         BigDecimal depositBalance = depositDAO.getBalance(contractId);
         LocalDate today = LocalDate.now();
-        String terminationType;
         String message;
 
         if (contract.getEndDate() != null && !contract.getEndDate().isAfter(today)) {
-            terminationType = "fulfilled";
             if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
                 DepositTransaction refund = new DepositTransaction();
                 refund.setContractId(contractId);
@@ -678,19 +824,25 @@ public class ContractServlet extends HttpServlet {
                 refund.setCreatedBy(createdBy);
                 depositDAO.insert(refund);
             }
-            message = "Contract #" + contractId + " cancellation approved and contract terminated. Deposit refunded.";
+            message = "Contract #" + contractId + " cancellation approved. Deposit refunded.";
         } else {
-            terminationType = "early";
             if (depositBalance != null && depositBalance.compareTo(BigDecimal.ZERO) > 0) {
                 DepositTransaction deduction = new DepositTransaction();
                 deduction.setContractId(contractId);
                 deduction.setAmount(depositBalance);
                 deduction.setTransactionType(DepositTransaction.TYPE_DEDUCTION);
-                deduction.setNote("Khong hoan tra coc do chấm dứt trước hạn (khach hang yeu cau huy).");
+                deduction.setNote("Khong hoan tra coc do cham dut truoc han (khach hang yeu cau huy).");
                 deduction.setCreatedBy(createdBy);
                 depositDAO.insert(deduction);
             }
-            message = "Contract #" + contractId + " cancellation approved and contract terminated. Deposit retained.";
+            message = "Contract #" + contractId + " cancellation approved. Deposit retained.";
+        }
+
+        if (finalBillId > 0) {
+            message += " Final bill #" + finalBillId + " created (utility + service tháng "
+                    + moveOutDate.getMonthValue() + "/" + moveOutDate.getYear() + ").";
+        } else if (finalBillId == -2) {
+            message += " (Final bill đã tồn tại cho kỳ này.)";
         }
 
         flash(request, "contractSuccess", message);

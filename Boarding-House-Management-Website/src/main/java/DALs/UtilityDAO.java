@@ -436,5 +436,26 @@ public class UtilityDAO extends DBContext {
             if (rs.next()) return mapUsage(rs);
         } catch (Exception e) { e.printStackTrace(); }
         return null;
+    }// =====================================================
+    // GET FUTURE PRICE (effective_from > today, lấy gần nhất sắp tới)
+    // =====================================================
+    public UtilityPrice getFuturePrice(int utilityId) {
+        String sql = "SELECT TOP 1 up.price_id, up.utility_id, up.price, up.effective_from, up.created_at, "
+                + "u.utility_name "
+                + "FROM utility_price up "
+                + "JOIN utility u ON up.utility_id = u.utility_id "
+                + "WHERE up.utility_id = ? AND up.effective_from > GETDATE() "
+                + "ORDER BY up.effective_from ASC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, utilityId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapPrice(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
