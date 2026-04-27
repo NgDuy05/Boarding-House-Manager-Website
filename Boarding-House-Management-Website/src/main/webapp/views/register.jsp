@@ -1,5 +1,5 @@
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,20 +8,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* 1. Import Font Pretendard */
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+        /* 2. Ocean Palette Variables */
+        :root {
+            --ocean-900: #03045E;
+            --ocean-800: #023E8A;
+            --ocean-700: #0077B6;
+            --ocean-600: #0096C7;
+            --ocean-500: #00B4D8;
+            --ocean-400: #48CAE4;
+            --ocean-300: #90E0EF;
+            --ocean-200: #ADE8F4;
+            --ocean-100: #CAF0F8;
+            --ds-bg: #f4f7f9;
+            --ds-text: #292A2D;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Pretendard', sans-serif !important;
             min-height: 100vh;
             display: flex;
             overflow-x: hidden;
+            background-color: var(--ds-bg);
+            color: var(--ds-text);
         }
 
         .auth-panel-left {
-            flex: 0 0 42%;
-            background: linear-gradient(145deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
+            flex: 0 0 45%;
+            background: linear-gradient(145deg, var(--ocean-900) 0%, var(--ocean-800) 50%, var(--ocean-700) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -31,50 +50,55 @@
             overflow: hidden;
         }
         .auth-panel-left::before {
-            content: '';
-            position: absolute;
-            width: 360px; height: 360px;
-            background: rgba(255,255,255,.07);
-            border-radius: 50%;
-            top: -80px; left: -80px;
+            content: ''; position: absolute;
+            width: 400px; height: 400px;
+            background: rgba(255,255,255,.05); border-radius: 50%;
+            top: -100px; left: -100px;
         }
         .auth-panel-left::after {
-            content: '';
-            position: absolute;
-            width: 260px; height: 260px;
-            background: rgba(255,255,255,.05);
-            border-radius: 50%;
+            content: ''; position: absolute;
+            width: 300px; height: 300px;
+            background: rgba(255,255,255,.04); border-radius: 50%;
             bottom: -50px; right: -50px;
         }
-        .left-inner { position: relative; z-index: 1; text-align: center; color: #fff; }
+        .left-inner { position: relative; z-index: 1; color: #fff; max-width: 380px; }
         .left-inner .brand-icon {
             width: 80px; height: 80px;
-            background: rgba(255,255,255,.2);
-            border-radius: 24px;
+            background: rgba(255,255,255,.15);
+            border-radius: 24px; border: 2px solid rgba(255,255,255,.3);
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.5rem;
+            margin-bottom: 1.5rem;
         }
-        .left-inner h1 { font-size: 2rem; font-weight: 700; margin-bottom: .5rem; }
-        .left-inner p  { font-size: .95rem; opacity: .85; line-height: 1.6; max-width: 300px; }
-        .steps-list { list-style: none; margin-top: 2rem; text-align: left; }
+        .left-inner h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: .8rem; letter-spacing: -0.5px; }
+        .left-inner p  { font-size: 1rem; opacity: .85; line-height: 1.6; margin-bottom: 2.5rem; }
+        
+        .steps-list { list-style: none; text-align: left; }
         .steps-list li {
-            display: flex; align-items: flex-start; gap: .85rem;
-            margin-bottom: 1.25rem;
+            display: flex; align-items: flex-start; gap: 1rem;
+            margin-bottom: 1.5rem;
         }
         .step-num {
-            width: 28px; height: 28px; flex-shrink: 0;
-            background: rgba(255,255,255,.25);
+            width: 32px; height: 32px; flex-shrink: 0;
+            background: rgba(255,255,255,.15);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: .82rem; color: #fff;
-            margin-top: 2px;
+            font-weight: 800; font-size: .9rem; color: rgba(255,255,255,0.7);
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
         }
-        .step-text { font-size: .88rem; opacity: .9; line-height: 1.5; }
-        .step-text strong { display: block; font-weight: 600; }
+        .step-num.active {
+            background: #fff;
+            color: var(--ocean-800);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+        .step-text { font-size: .9rem; opacity: .7; line-height: 1.5; transition: opacity 0.3s ease; }
+        .step-text strong { display: block; font-weight: 700; font-size: 1rem; color: #fff; }
+        li:has(.step-num.active) .step-text { opacity: 1; }
 
         .auth-panel-right {
             flex: 1;
-            background: #f8fafc;
+            background: var(--ds-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -83,148 +107,132 @@
         }
         .auth-form-wrap {
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             background: #fff;
-            border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 40px rgba(0,0,0,.08);
-            animation: slideUp .45s ease both;
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,.06);
+            animation: slideUp .4s ease both;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        .auth-form-wrap h2 { font-size: 1.55rem; font-weight: 700; color: #1e1b4b; }
-        .auth-form-wrap .sub { color: #64748b; font-size: .88rem; margin-bottom: 1.6rem; }
+        .auth-form-wrap h2 { font-size: 1.7rem; font-weight: 800; color: var(--ocean-900); letter-spacing: -0.5px; }
+        .auth-form-wrap .sub { color: #64748b; font-size: .95rem; margin-bottom: 2rem; }
 
-        .form-label { font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: .35rem; }
+        .form-label { font-weight: 700; font-size: .85rem; color: #374151; margin-bottom: .4rem; }
         .required-star { color: #ef4444; }
 
         .input-icon-wrap { position: relative; }
         .input-icon-wrap .icon-left {
-            position: absolute; top: 50%; left: 12px;
+            position: absolute; top: 50%; left: 16px;
             transform: translateY(-50%);
-            color: #9ca3af; pointer-events: none; font-size: .95rem;
+            color: #9ca3af; pointer-events: none; font-size: 1rem;
         }
         .input-icon-wrap input {
-            padding-left: 2.35rem;
+            padding-left: 2.8rem;
             border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: .9rem;
-            height: 42px;
+            border-radius: 12px;
+            font-size: .95rem;
+            height: 48px;
             transition: border-color .2s, box-shadow .2s;
             width: 100%;
         }
         .input-icon-wrap input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+            border-color: var(--ocean-500);
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
             outline: none;
         }
         .input-icon-wrap input.is-invalid { border-color: #ef4444; }
         .input-icon-wrap input.is-valid   { border-color: #10b981; }
 
         .btn-eye {
-            position: absolute; top: 50%; right: 10px;
+            position: absolute; top: 50%; right: 12px;
             transform: translateY(-50%);
             background: none; border: none;
-            color: #9ca3af; cursor: pointer; font-size: .95rem;
-            padding: 4px 6px; line-height: 1;
+            color: #9ca3af; cursor: pointer; font-size: 1.1rem;
+            padding: 4px; line-height: 1;
         }
-        .btn-eye:hover { color: #7c3aed; }
+        .btn-eye:hover { color: var(--ocean-600); }
 
-        .field-error { font-size: .77rem; color: #ef4444; margin-top: .3rem; display: none; }
+        .field-error { font-size: .8rem; color: #ef4444; margin-top: .4rem; font-weight: 500; display: none; }
 
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
         .server-error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 10px;
-            padding: .85rem 1rem;
-            display: flex; align-items: center; gap: .6rem;
-            color: #b91c1c; font-size: .88rem;
-            margin-bottom: 1.25rem;
+            background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px;
+            padding: 1rem; display: flex; align-items: center; gap: .75rem;
+            color: #b91c1c; font-size: .9rem; font-weight: 500; margin-bottom: 1.5rem;
+        }
+        .info-box {
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+            padding: 1rem; color: #166534; font-size: .9rem; font-weight: 500;
+            display: flex; align-items: center; gap: .75rem; margin-bottom: 1.5rem;
         }
 
         .btn-submit {
-            width: 100%; height: 46px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border: none; border-radius: 10px;
-            color: #fff; font-weight: 600; font-size: .95rem;
-            cursor: pointer; transition: opacity .2s, transform .15s;
-            display: flex; align-items: center; justify-content: center; gap: .4rem;
-            margin-top: 1.25rem;
+            width: 100%; height: 50px;
+            background: linear-gradient(135deg, var(--ocean-800), var(--ocean-600));
+            border: none; border-radius: 12px;
+            color: #fff; font-weight: 700; font-size: 1rem;
+            cursor: pointer; transition: transform .2s, box-shadow .2s;
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+            margin-top: 1.5rem;
         }
-        .btn-submit:hover  { opacity: .92; }
+        .btn-submit:hover  { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 119, 182, 0.25); }
         .btn-submit:active { transform: scale(.98); }
 
-        .switch-link { font-size: .87rem; color: #64748b; text-align: center; margin-top: 1.25rem; }
-        .switch-link a { color: #7c3aed; font-weight: 600; text-decoration: none; }
-        .switch-link a:hover { text-decoration: underline; }
+        .switch-link { font-size: .9rem; color: #64748b; text-align: center; margin-top: 1.5rem; }
+        .switch-link a { color: var(--ocean-700); font-weight: 700; text-decoration: none; transition: color 0.2s; }
+        .switch-link a:hover { color: var(--ocean-900); text-decoration: underline; }
+
+        /* OTP Specific */
+        .otp-input-box {
+            font-size: 2.2rem; font-weight: 800; letter-spacing: 1rem;
+            text-align: center; border: 2px solid #e5e7eb; border-radius: 16px;
+            height: 72px; width: 100%; color: var(--ocean-900);
+            transition: border-color .2s, box-shadow .2s;
+            font-family: 'Pretendard', sans-serif;
+        }
+        .otp-input-box:focus {
+            border-color: var(--ocean-500);
+            box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.15);
+            outline: none;
+        }
 
         /* Toast */
-        .toast-wrap {
-            position: fixed; top: 24px; right: 24px; z-index: 9999;
-            display: flex; flex-direction: column; gap: .5rem;
-        }
+        .toast-wrap { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; }
         .toast-item {
             display: flex; align-items: flex-start; gap: .75rem;
-            padding: 1rem 2.5rem 1rem 1.25rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,.14);
-            min-width: 300px; background: #fff;
-            border-left: 4px solid #ef4444;
-            position: relative;
-            animation: toastIn .35s ease both;
+            padding: 1rem 2.5rem 1rem 1.25rem; border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.14); min-width: 300px; background: #fff;
+            border-left: 4px solid #ef4444; position: relative; animation: toastIn .35s ease both;
         }
         .toast-icon  { font-size: 1.2rem; flex-shrink: 0; color: #ef4444; margin-top: 1px; }
         .toast-title { font-weight: 700; font-size: .88rem; color: #111827; line-height: 1.3; }
         .toast-msg   { font-size: .82rem; color: #6b7280; margin-top: 2px; }
         .toast-close {
-            position: absolute; top: 8px; right: 10px;
-            background: none; border: none; cursor: pointer;
-            color: #9ca3af; font-size: .82rem;
+            position: absolute; top: 8px; right: 10px; background: none; border: none; cursor: pointer; color: #9ca3af; font-size: .82rem;
         }
         .toast-close:hover { color: #374151; }
         .toast-progress {
-            position: absolute; bottom: 0; left: 0; height: 3px;
-            background: #ef4444;
-            border-radius: 0 0 0 12px;
+            position: absolute; bottom: 0; left: 0; height: 3px; background: #ef4444; border-radius: 0 0 0 12px;
             animation: shrink 4.5s linear forwards;
         }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(30px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes shrink { from { width: 100%; } to { width: 0; } }
 
-        .step-num.active {
-            background: rgba(255,255,255,.85);
-            color: #4f46e5;
-        }
-        .otp-input-box {
-            font-size: 2rem; font-weight: 700; letter-spacing: .6rem;
-            text-align: center; border: 2px solid #e5e7eb; border-radius: 12px;
-            height: 64px; width: 100%;
-            transition: border-color .2s, box-shadow .2s;
-        }
-        .otp-input-box:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,.15);
-            outline: none;
-        }
-        .info-box {
-            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
-            padding: .75rem 1rem; color: #166534; font-size: .85rem;
-            display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .auth-panel-left { display: none; }
-            .auth-panel-right { background: linear-gradient(145deg, #4f46e5, #7c3aed); }
-            .auth-form-wrap { box-shadow: 0 8px 40px rgba(0,0,0,.2); }
-            .row-2 { grid-template-columns: 1fr; }
+        @media (max-width: 992px) {
+            body { flex-direction: column; }
+            .auth-panel-left { flex: none; padding: 2rem; }
+            .auth-panel-left::before, .auth-panel-left::after { display: none; }
+            .left-inner { max-width: 100%; text-align: center; }
+            .steps-list { display: none; /* Ẩn step list trên mobile cho gọn */ }
+            .left-inner .brand-icon { margin: 0 auto 1rem; width: 64px; height: 64px; font-size: 1.5rem; }
+            .auth-form-wrap { padding: 2rem; }
+            .row-2 { grid-template-columns: 1fr; gap: 0; }
         }
     </style>
 </head>
@@ -233,10 +241,10 @@
 <div class="auth-panel-left">
     <div class="left-inner">
         <div class="brand-icon">
-            <i class="bi bi-house-heart-fill fs-2 text-white"></i>
+            <i class="bi bi-buildings-fill fs-2 text-white"></i>
         </div>
         <h1>AKDD House</h1>
-        <p>Create an account and start managing your rental experience today.</p>
+        <p>Create an account and start managing your rental experience seamlessly today.</p>
         <ul class="steps-list">
             <li>
                 <span class="step-num ${empty phase or phase == 1 ? 'active' : ''}">1</span>
@@ -256,7 +264,7 @@
                 <span class="step-num">3</span>
                 <div class="step-text">
                     <strong>Log in and explore</strong>
-                    Access all features immediately
+                    Access all tenant features immediately
                 </div>
             </li>
         </ul>
@@ -268,13 +276,13 @@
 
         <c:if test="${not empty error}">
             <div class="server-error">
-                <i class="bi bi-exclamation-circle-fill"></i>
+                <i class="bi bi-exclamation-circle-fill fs-5"></i>
                 <span><c:out value="${error}" /></span>
             </div>
         </c:if>
         <c:if test="${not empty info}">
             <div class="info-box">
-                <i class="bi bi-check-circle-fill"></i>
+                <i class="bi bi-check-circle-fill fs-5"></i>
                 <span><c:out value="${info}" /></span>
             </div>
         </c:if>
@@ -290,7 +298,7 @@
                 <div class="mb-3">
                     <label class="form-label">Username <span class="required-star">*</span></label>
                     <div class="input-icon-wrap">
-                        <i class="bi bi-person icon-left"></i>
+                        <i class="bi bi-person-fill icon-left"></i>
                         <input type="text" name="username" id="username" class="form-control"
                                placeholder="e.g. john_doe"
                                value="${param.username}" required
@@ -300,10 +308,10 @@
                 </div>
 
                 <div class="row-2 mb-3">
-                    <div>
+                    <div class="mb-3 mb-md-0">
                         <label class="form-label">Password <span class="required-star">*</span></label>
                         <div class="input-icon-wrap">
-                            <i class="bi bi-lock icon-left"></i>
+                            <i class="bi bi-lock-fill icon-left"></i>
                             <input type="password" name="password" id="password"
                                    class="form-control" placeholder="Min. 6 characters" required
                                    oninput="validatePassword(this)">
@@ -316,7 +324,7 @@
                     <div>
                         <label class="form-label">Confirm Password <span class="required-star">*</span></label>
                         <div class="input-icon-wrap">
-                            <i class="bi bi-lock-fill icon-left"></i>
+                            <i class="bi bi-shield-lock-fill icon-left"></i>
                             <input type="password" name="confirmPassword" id="confirmPassword"
                                    class="form-control" placeholder="Re-enter password" required
                                    oninput="validateConfirm(this)">
@@ -328,21 +336,21 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3 mt-md-2 mt-0">
                     <label class="form-label">Full Name</label>
                     <div class="input-icon-wrap">
-                        <i class="bi bi-person-badge icon-left"></i>
+                        <i class="bi bi-person-badge-fill icon-left"></i>
                         <input type="text" name="fullName" class="form-control"
                                placeholder="John Doe"
                                value="${param.fullName}">
                     </div>
                 </div>
 
-                <div class="row-2 mb-1">
-                    <div>
+                <div class="row-2 mb-2">
+                    <div class="mb-3 mb-md-0">
                         <label class="form-label">Email <span class="required-star">*</span></label>
                         <div class="input-icon-wrap">
-                            <i class="bi bi-envelope icon-left"></i>
+                            <i class="bi bi-envelope-fill icon-left"></i>
                             <input type="email" name="email" id="emailField" class="form-control"
                                    placeholder="you@example.com"
                                    value="${param.email}" required
@@ -353,7 +361,7 @@
                     <div>
                         <label class="form-label">Phone</label>
                         <div class="input-icon-wrap">
-                            <i class="bi bi-telephone icon-left"></i>
+                            <i class="bi bi-telephone-fill icon-left"></i>
                             <input type="tel" name="phone" id="phoneField" class="form-control"
                                    placeholder="09xxxxxxxx"
                                    value="${param.phone}"
@@ -363,8 +371,8 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-submit">
-                    <i class="bi bi-envelope-check"></i> Continue &amp; Verify Email
+                <button type="submit" class="btn-submit mt-4">
+                    <i class="bi bi-envelope-check-fill me-1"></i> Continue &amp; Verify Email
                 </button>
             </form>
 
@@ -376,34 +384,35 @@
 
         <%-- ===== PHASE 2: OTP verification ===== --%>
         <c:if test="${phase == 2}">
-            <h2>Verify your email</h2>
-            <p class="sub">
-                A 6-digit OTP code was sent to<br>
-                <strong>${maskedEmail}</strong> &nbsp;&mdash;&nbsp; valid for <strong>5 minutes</strong>
+            <h2 class="mb-2"><i class="bi bi-envelope-paper-fill me-2" style="color: var(--ocean-500);"></i>Verify Email</h2>
+            <p class="sub mb-4" style="line-height: 1.6;">
+                A 6-digit OTP code was sent to <br>
+                <strong style="color: var(--ocean-900); font-size: 1.05rem;">${maskedEmail}</strong><br>
+                Valid for <strong style="color: var(--ocean-700);">5 minutes</strong>.
             </p>
 
             <form action="${pageContext.request.contextPath}/auth" method="post" id="otpForm" novalidate>
                 <input type="hidden" name="action" value="verifyRegisterOtp">
 
                 <div class="mb-4">
-                    <label class="form-label" style="display:block;text-align:center;margin-bottom:.75rem;">
+                    <label class="form-label" style="display:block;text-align:center;margin-bottom:.75rem; color: var(--ocean-800);">
                         Enter OTP Code
                     </label>
                     <input type="text" name="otp" id="otpInput"
                            class="otp-input-box"
-                           placeholder="______"
+                           placeholder="------"
                            maxlength="6" pattern="[0-9]{6}"
                            inputmode="numeric" autocomplete="one-time-code"
                            required autofocus>
-                    <div class="field-error" id="err-otp" style="text-align:center;margin-top:.4rem;">Please enter the 6-digit code</div>
+                    <div class="field-error" id="err-otp" style="text-align:center;margin-top:.6rem;">Please enter the 6-digit code</div>
                 </div>
 
                 <button type="submit" class="btn-submit">
-                    <i class="bi bi-shield-check"></i> Verify &amp; Create Account
+                    <i class="bi bi-shield-fill-check me-1 fs-5"></i> Verify &amp; Create Account
                 </button>
             </form>
 
-            <p class="switch-link" style="margin-top:1rem;">
+            <p class="switch-link" style="margin-top:1.5rem;">
                 Didn't receive the code?
                 <a href="${pageContext.request.contextPath}/auth?action=resendRegisterOtp">Resend OTP</a>
             </p>
@@ -413,9 +422,6 @@
                 </a>
             </p>
         </c:if>
-
-    </div>
-</div>
 
     </div>
 </div>
